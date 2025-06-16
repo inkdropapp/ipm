@@ -66,3 +66,35 @@ Uninstall package:
 ```ts
 await ipm.uninstall('package-name')
 ```
+
+## Development
+
+### Prerequisites
+
+- Node.js 18.x or higher
+- npm
+
+### Setup
+
+```sh
+npm install
+```
+
+### Scripts
+
+- `npm test` - Run tests
+- `npm run test:watch` - Run tests in watch mode
+- `npm run lint` - Run ESLint
+- `npm run lint:fix` - Run ESLint with auto-fix
+- `npm run typecheck` - Run TypeScript type checking
+
+### CI/CD
+
+This project uses GitHub Actions for continuous integration. The CI pipeline runs:
+
+- Tests on Node.js 18.x, 20.x, and 22.x
+- Cross-platform testing (Ubuntu, Windows, macOS)
+- Linting with ESLint
+- Type checking with TypeScript
+
+All pull requests must pass CI checks before merging.
