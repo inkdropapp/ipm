@@ -15,8 +15,37 @@ export class IPMRegistry {
   /**
    * Get a package from the registry
    */
-  async getPackageDetail(name: string): Promise<PackageInfo> {
+  async getPackageInfo(name: string): Promise<PackageInfo> {
     return this.apiClient.get(name).then(res => res.data)
+  }
+
+  /**
+   * Get information about a specific version of a package
+   */
+  async getPackageVersionInfo(
+    name: string,
+    version: string
+  ): Promise<PackageVersionInfo> {
+    return this.apiClient
+      .get(`${name}/versions/${version}`)
+      .then(res => res.data)
+  }
+
+  /**
+   * Download package tarball for a specific version and save to file
+   */
+  async downloadPackageTarball(
+    name: string,
+    version: string,
+    destPath: string
+  ): Promise<void> {
+    const data = await this.apiClient
+      .get(`${name}/versions/${version}/tarball`, {
+        responseType: 'arraybuffer'
+      })
+      .then(res => res.data)
+
+    await writeFile(destPath, Buffer.from(data))
   }
 
   /**
@@ -80,34 +109,5 @@ export class IPMRegistry {
       }),
       sort: 'recency'
     })
-  }
-
-  /**
-   * Get information about a specific version of a package
-   */
-  async getPackageVersion(
-    name: string,
-    version: string
-  ): Promise<PackageVersionInfo> {
-    return this.apiClient
-      .get(`${name}/versions/${version}`)
-      .then(res => res.data)
-  }
-
-  /**
-   * Download package tarball for a specific version and save to file
-   */
-  async downloadPackageTarball(
-    name: string,
-    version: string,
-    destPath: string
-  ): Promise<void> {
-    const data = await this.apiClient
-      .get(`${name}/versions/${version}/tarball`, {
-        responseType: 'arraybuffer'
-      })
-      .then(res => res.data)
-
-    await writeFile(destPath, Buffer.from(data))
   }
 }
