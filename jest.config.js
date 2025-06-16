@@ -14,7 +14,8 @@ export default {
     'node_modules/(?!@inkdropapp/logger)'
   ],
   testMatch: [
-    '**/tests/**/*.test.ts'
+    '**/tests/**/*.test.ts',
+    '!**/tests/real-install.test.ts' // Exclude real installation test from normal runs
   ],
   collectCoverageFrom: [
     'src/**/*.ts',

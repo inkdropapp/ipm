@@ -165,8 +165,17 @@ export class CommandInstall {
 
     try {
       const cleanVersion = version.replace(/^[\^~]/, '')
-      const tarballUrl = `https://registry.npmjs.org/${name}/-/${name}-${cleanVersion}.tgz`
-      const tarballPath = path.join(tempDir, `${name}-${cleanVersion}.tgz`)
+
+      // Handle scoped packages (e.g., @matejmazur/react-katex)
+      const packageFileName = name.startsWith('@')
+        ? name.split('/')[1] // @matejmazur/react-katex -> react-katex
+        : name
+
+      const tarballUrl = `https://registry.npmjs.org/${name}/-/${packageFileName}-${cleanVersion}.tgz`
+      const tarballPath = path.join(
+        tempDir,
+        `${packageFileName}-${cleanVersion}.tgz`
+      )
 
       logger.info(`  Installing dependency ${name}@${cleanVersion}...`)
 
