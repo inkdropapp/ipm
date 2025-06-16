@@ -1,5 +1,6 @@
+import { writeFile } from 'fs/promises'
 import axios from 'axios'
-import type { PackageDetail, PackageInfo, PackageMetadata } from './types'
+import type { PackageInfo, PackageVersionInfo } from './types'
 import type { AxiosInstance } from 'axios'
 
 export class IPMRegistry {
@@ -14,7 +15,7 @@ export class IPMRegistry {
   /**
    * Get a package from the registry
    */
-  async getPackageDetail(name: string): Promise<PackageDetail> {
+  async getPackageDetail(name: string): Promise<PackageInfo> {
     return this.apiClient.get(name).then(res => res.data)
   }
 
@@ -79,5 +80,34 @@ export class IPMRegistry {
       }),
       sort: 'recency'
     })
+  }
+
+  /**
+   * Get information about a specific version of a package
+   */
+  async getPackageVersion(
+    name: string,
+    version: string
+  ): Promise<PackageVersionInfo> {
+    return this.apiClient
+      .get(`${name}/versions/${version}`)
+      .then(res => res.data)
+  }
+
+  /**
+   * Download package tarball for a specific version and save to file
+   */
+  async downloadPackageTarball(
+    name: string,
+    version: string,
+    destPath: string
+  ): Promise<void> {
+    const data = await this.apiClient
+      .get(`${name}/versions/${version}/tarball`, {
+        responseType: 'arraybuffer'
+      })
+      .then(res => res.data)
+
+    await writeFile(destPath, Buffer.from(data))
   }
 }

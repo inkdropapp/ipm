@@ -42,11 +42,6 @@ export type PackageVersionInfo = PackageMetadata & {
   }
 }
 
-export type PackageDetail = PackageMetadata & {
-  readme: string
-  downloads?: number
-}
-
 export type OutdatedPackageInfo = {
   name: string
   version: string
