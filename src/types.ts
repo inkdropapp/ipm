@@ -1,4 +1,5 @@
 export interface IPMOptions {
+  appVersion: string
   appHomePath?: string
   appDataPath?: string
   resourcePath?: string
