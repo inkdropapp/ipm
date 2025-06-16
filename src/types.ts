@@ -1,0 +1,54 @@
+export interface IPMOptions {
+  appHomePath?: string
+  appDataPath?: string
+  resourcePath?: string
+  apiUrl?: string
+  packagesUrl?: string
+}
+
+export type PackageInfo = {
+  name: string
+  created_at: number
+  updated_at: number
+  repository: string
+  downloads: number
+  releases: {
+    latest: string
+  }
+  readme: string
+  metadata: PackageMetadata
+  versions?: Record<string, PackageMetadata>
+}
+
+export type PackageMetadata = {
+  name: string
+  main: string
+  version: string
+  description: string
+  keywords?: string[]
+  repository: string
+  license?: string
+  engines?: {
+    inkdrop?: string
+  }
+  dependencies?: Record<string, string>
+  devDependencies?: Record<string, string>
+  theme?: 'syntax' | 'ui' | 'preview'
+}
+
+export type PackageVersionInfo = PackageMetadata & {
+  dist: {
+    tarball: string
+  }
+}
+
+export type PackageDetail = PackageMetadata & {
+  readme: string
+  downloads?: number
+}
+
+export type OutdatedPackageInfo = {
+  name: string
+  version: string
+  latestVersion: string
+}
