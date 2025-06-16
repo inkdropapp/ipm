@@ -3,6 +3,14 @@ import axios from 'axios'
 import type { PackageInfo, PackageVersionInfo } from './types'
 import type { AxiosInstance } from 'axios'
 
+type SortOptions =
+  | 'majority'
+  | 'recency'
+  | 'newness'
+  | 'theme-majority'
+  | 'theme-recency'
+  | 'theme-newness'
+
 export class IPMRegistry {
   apiClient: AxiosInstance
 
@@ -53,7 +61,7 @@ export class IPMRegistry {
    */
   async search(params: {
     q: string
-    sort?: string
+    sort?: SortOptions | 'score'
     direction?: string
   }): Promise<PackageInfo[]> {
     const { sort = 'score', q = '', direction = 'desc' } = params || {}
@@ -69,7 +77,7 @@ export class IPMRegistry {
   }
 
   async getPackages(opts?: {
-    sort: string
+    sort: SortOptions
     page: number
     theme: boolean
   }): Promise<PackageInfo[]> {

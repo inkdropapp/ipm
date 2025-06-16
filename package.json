@@ -5,7 +5,9 @@
   "description": "Inkdrop Package Manager",
   "main": "src/index.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
   "keywords": [
     "Inkdrop"
@@ -23,9 +25,12 @@
   "devDependencies": {
     "@eslint/js": "^9.29.0",
     "@ianvs/prettier-plugin-sort-imports": "^4.4.2",
+    "@types/jest": "^29.5.14",
     "@types/node": "^24.0.1",
     "eslint": "^9.29.0",
+    "jest": "^30.0.0",
     "prettier": "^3.5.3",
+    "ts-jest": "^29.4.0",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.34.0"
   },
