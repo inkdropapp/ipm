@@ -7,7 +7,7 @@
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:real-install": "jest tests/real-install.test.ts",
+    "test:real-install": "jest tests/real-install.test.ts --testMatch=\"**/tests/real-install.test.ts\"",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc --noEmit"

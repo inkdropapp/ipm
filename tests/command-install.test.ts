@@ -1,4 +1,5 @@
 import { access, mkdir, readFile, rm, writeFile } from 'fs/promises'
+import path from 'path'
 import { jest } from '@jest/globals'
 import { extract } from 'tar'
 import { CommandInstall } from '../src/command-install'
@@ -94,16 +95,23 @@ describe('CommandInstall', () => {
   let mockEnvironment: Environment
   let mockRegistry: jest.Mocked<IPMRegistry>
   const testInkdropVersion = '5.9.0'
+  let testInkdropDir: string
+  let testCacheDir: string
 
   beforeEach(() => {
     // Create mock environment
     mockEnvironment = new Environment({ appVersion: testInkdropVersion })
+    testInkdropDir = process.platform === 'win32' 
+      ? path.join('C:', 'Users', 'user', 'AppData', 'Roaming', 'inkdrop')
+      : path.join(process.env.HOME || '/home/user', '.config', 'inkdrop')
+    testCacheDir = path.join(testInkdropDir, '.ipm')
+    
     jest
       .spyOn(mockEnvironment, 'getInkdropDirectory')
-      .mockReturnValue('/home/user/.inkdrop')
+      .mockReturnValue(testInkdropDir)
     jest
       .spyOn(mockEnvironment, 'getCacheDirectory')
-      .mockReturnValue('/home/user/.inkdrop/.ipm')
+      .mockReturnValue(testCacheDir)
 
     // Create mocked registry
     mockRegistry = {
@@ -156,18 +164,18 @@ describe('CommandInstall', () => {
       expect(mockRegistry.downloadPackageTarball).toHaveBeenCalledWith(
         'math',
         '1.6.1',
-        '/home/user/.inkdrop/.ipm/tmp/math-1.6.1.tgz'
+        path.join(testCacheDir, 'tmp', 'math-1.6.1.tgz')
       )
 
       // Verify file system operations were performed
-      expect(mockedMkdir).toHaveBeenCalledWith('/home/user/.inkdrop/packages', {
+      expect(mockedMkdir).toHaveBeenCalledWith(path.join(testInkdropDir, 'packages'), {
         recursive: true
       })
-      expect(mockedMkdir).toHaveBeenCalledWith('/home/user/.inkdrop/.ipm/tmp', {
+      expect(mockedMkdir).toHaveBeenCalledWith(path.join(testCacheDir, 'tmp'), {
         recursive: true
       })
       expect(mockedMkdir).toHaveBeenCalledWith(
-        '/home/user/.inkdrop/packages/math',
+        path.join(testInkdropDir, 'packages', 'math'),
         { recursive: true }
       )
       expect(mockedExtract).toHaveBeenCalled()
@@ -182,7 +190,7 @@ describe('CommandInstall', () => {
       expect(mockRegistry.downloadPackageTarball).toHaveBeenCalledWith(
         'math',
         '1.6.0',
-        '/home/user/.inkdrop/.ipm/tmp/math-1.6.0.tgz'
+        path.join(testCacheDir, 'tmp', 'math-1.6.0.tgz')
       )
       expect(mockedLogger.info).toHaveBeenCalledWith('Installing math@1.6.0...')
       expect(mockedLogger.info).toHaveBeenCalledWith('Successfully installed math@1.6.0')
@@ -269,19 +277,19 @@ describe('CommandInstall', () => {
     it('should create necessary directories and extract tarball', async () => {
       await commandInstall.install(mockPackageVersionInfo)
 
-      expect(mockedMkdir).toHaveBeenCalledWith('/home/user/.inkdrop/packages', {
+      expect(mockedMkdir).toHaveBeenCalledWith(path.join(testInkdropDir, 'packages'), {
         recursive: true
       })
-      expect(mockedMkdir).toHaveBeenCalledWith('/home/user/.inkdrop/.ipm/tmp', {
+      expect(mockedMkdir).toHaveBeenCalledWith(path.join(testCacheDir, 'tmp'), {
         recursive: true
       })
       expect(mockedMkdir).toHaveBeenCalledWith(
-        '/home/user/.inkdrop/packages/math',
+        path.join(testInkdropDir, 'packages', 'math'),
         { recursive: true }
       )
       expect(mockedExtract).toHaveBeenCalledWith({
-        file: '/home/user/.inkdrop/.ipm/tmp/math-1.6.1.tgz',
-        cwd: '/home/user/.inkdrop/packages/math',
+        file: path.join(testCacheDir, 'tmp', 'math-1.6.1.tgz'),
+        cwd: path.join(testInkdropDir, 'packages', 'math'),
         strip: 1
       })
     })
@@ -293,7 +301,7 @@ describe('CommandInstall', () => {
       await commandInstall.install(mockPackageVersionInfo)
 
       expect(mockedRm).toHaveBeenCalledWith(
-        '/home/user/.inkdrop/packages/math',
+        path.join(testInkdropDir, 'packages', 'math'),
         {
           recursive: true,
           force: true
@@ -316,11 +324,11 @@ describe('CommandInstall', () => {
       await commandInstall.install(mockPackageVersionInfo)
 
       expect(mockedReadFile).toHaveBeenCalledWith(
-        '/home/user/.inkdrop/packages/math/package.json',
+        path.join(testInkdropDir, 'packages', 'math', 'package.json'),
         'utf8'
       )
       expect(mockedMkdir).toHaveBeenCalledWith(
-        '/home/user/.inkdrop/packages/math/node_modules',
+        path.join(testInkdropDir, 'packages', 'math', 'node_modules'),
         { recursive: true }
       )
     })
@@ -340,7 +348,7 @@ describe('CommandInstall', () => {
       await commandInstall.install(mockPackageVersionInfo)
 
       expect(mockedRm).toHaveBeenCalledWith(
-        '/home/user/.inkdrop/.ipm/tmp/math-1.6.1.tgz',
+        path.join(testCacheDir, 'tmp', 'math-1.6.1.tgz'),
         { force: true }
       )
     })
@@ -421,14 +429,14 @@ describe('CommandInstall', () => {
       expect(mockRegistry.downloadPackageTarball).toHaveBeenCalledWith(
         'math',
         '1.6.1',
-        '/home/user/.inkdrop/.ipm/tmp/math-1.6.1.tgz'
+        path.join(testCacheDir, 'tmp', 'math-1.6.1.tgz')
       )
 
       // Verify the complete flow
-      expect(mockedMkdir).toHaveBeenCalledWith('/home/user/.inkdrop/packages', {
+      expect(mockedMkdir).toHaveBeenCalledWith(path.join(testInkdropDir, 'packages'), {
         recursive: true
       })
-      expect(mockedMkdir).toHaveBeenCalledWith('/home/user/.inkdrop/.ipm/tmp', {
+      expect(mockedMkdir).toHaveBeenCalledWith(path.join(testCacheDir, 'tmp'), {
         recursive: true
       })
       expect(mockedExtract).toHaveBeenCalled()
