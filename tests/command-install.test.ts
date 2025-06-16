@@ -10,6 +10,7 @@ import { PackageInfo, PackageVersionInfo } from '../src/types'
 jest.mock('fs/promises')
 jest.mock('tar')
 jest.mock('../src/logger')
+jest.mock('../src/registry')
 
 const mockedMkdir = mkdir as jest.MockedFunction<typeof mkdir>
 const mockedReadFile = readFile as jest.MockedFunction<typeof readFile>
@@ -19,10 +20,79 @@ const mockedAccess = access as jest.MockedFunction<typeof access>
 const mockedExtract = extract as jest.MockedFunction<any>
 const mockedLogger = logger as jest.Mocked<typeof logger>
 
+// Mock data based on real math package from api.inkdrop.app
+const mockMathPackageInfo: PackageInfo = {
+  name: 'math',
+  created_at: 1477372283896,
+  updated_at: 1742973710964,
+  repository: 'inkdropapp/inkdrop-math',
+  downloads: 19181,
+  releases: {
+    latest: '1.6.1'
+  },
+  readme: 'Math package for Inkdrop',
+  metadata: {
+    name: 'math',
+    main: './lib/index',
+    version: '1.6.1',
+    description: 'Add math syntax support to the editor and the preview',
+    repository: 'https://github.com/inkdropapp/inkdrop-math'
+  },
+  versions: {
+    '1.6.0': {
+      name: 'math',
+      main: './lib/index',
+      version: '1.6.0',
+      description: 'Add math syntax support to the editor and the preview',
+      repository: 'https://github.com/inkdropapp/inkdrop-math',
+      engines: {
+        inkdrop: '>=5.9.0 <7.0.0'
+      },
+      dependencies: {
+        '@matejmazur/react-katex': '^3.1.3',
+        'katex': '^0.16.10'
+      },
+      dist: {
+        tarball: 'https://api.inkdrop.app/v1/packages/math/versions/1.6.0/tarball'
+      }
+    },
+    '1.6.1': {
+      name: 'math',
+      main: './lib/index',
+      version: '1.6.1',
+      description: 'Add math syntax support to the editor and the preview',
+      repository: 'https://github.com/inkdropapp/inkdrop-math',
+      engines: {
+        inkdrop: '>=5.9.0 <7.0.0'
+      },
+      dependencies: {
+        '@matejmazur/react-katex': '^3.1.3',
+        'katex': '^0.16.21'
+      },
+      dist: {
+        tarball: 'https://api.inkdrop.app/v1/packages/math/versions/1.6.1/tarball'
+      }
+    },
+    '999.0.0': {
+      name: 'math',
+      main: './lib/index',
+      version: '999.0.0',
+      description: 'Add math syntax support to the editor and the preview',
+      repository: 'https://github.com/inkdropapp/inkdrop-math',
+      engines: {
+        inkdrop: '>=999.0.0 <1000.0.0' // Incompatible version for testing
+      },
+      dist: {
+        tarball: 'https://api.inkdrop.app/v1/packages/math/versions/999.0.0/tarball'
+      }
+    }
+  }
+}
+
 describe('CommandInstall', () => {
   let commandInstall: CommandInstall
   let mockEnvironment: Environment
-  let mockRegistry: IPMRegistry
+  let mockRegistry: jest.Mocked<IPMRegistry>
   const testInkdropVersion = '5.9.0'
 
   beforeEach(() => {
@@ -35,8 +105,29 @@ describe('CommandInstall', () => {
       .spyOn(mockEnvironment, 'getCacheDirectory')
       .mockReturnValue('/home/user/.inkdrop/.ipm')
 
-    // Create real registry that will make actual API calls
-    mockRegistry = new IPMRegistry('https://api.inkdrop.app')
+    // Create mocked registry
+    mockRegistry = {
+      getPackageInfo: jest.fn(),
+      getPackageVersionInfo: jest.fn(),
+      downloadPackageTarball: jest.fn(),
+      search: jest.fn(),
+      getPackages: jest.fn(),
+      getPopularPackages: jest.fn(),
+      getNewPackages: jest.fn()
+    } as any
+
+    // Setup default mock responses
+    mockRegistry.getPackageInfo.mockImplementation((name: string) => {
+      if (name === 'math') {
+        return Promise.resolve(mockMathPackageInfo)
+      } else if (name === 'non-existent-package-12345') {
+        return Promise.reject(new Error('Package not found'))
+      } else {
+        return Promise.reject(new Error('Package not found'))
+      }
+    })
+
+    mockRegistry.downloadPackageTarball.mockResolvedValue(undefined)
 
     commandInstall = new CommandInstall(
       testInkdropVersion,
@@ -57,11 +148,18 @@ describe('CommandInstall', () => {
   })
 
   describe('run', () => {
-    it('should successfully install the math package from real API', async () => {
-      // This test will make a real API call to get the math package info
+    it('should successfully install the math package using mocked API', async () => {
       await commandInstall.run('math')
 
-      // Verify that the registry API was called and file system operations were performed
+      // Verify that the registry API was called
+      expect(mockRegistry.getPackageInfo).toHaveBeenCalledWith('math')
+      expect(mockRegistry.downloadPackageTarball).toHaveBeenCalledWith(
+        'math',
+        '1.6.1',
+        '/home/user/.inkdrop/.ipm/tmp/math-1.6.1.tgz'
+      )
+
+      // Verify file system operations were performed
       expect(mockedMkdir).toHaveBeenCalledWith('/home/user/.inkdrop/packages', {
         recursive: true
       })
@@ -73,46 +171,43 @@ describe('CommandInstall', () => {
         { recursive: true }
       )
       expect(mockedExtract).toHaveBeenCalled()
-      expect(mockedLogger.info).toHaveBeenCalledWith(
-        expect.stringMatching(/Installing math@/)
-      )
-      expect(mockedLogger.info).toHaveBeenCalledWith(
-        expect.stringMatching(/Successfully installed math@/)
-      )
-    }, 30000) // 30 second timeout for real API call
+      expect(mockedLogger.info).toHaveBeenCalledWith('Installing math@1.6.1...')
+      expect(mockedLogger.info).toHaveBeenCalledWith('Successfully installed math@1.6.1')
+    })
 
     it('should install specific version when provided', async () => {
       await commandInstall.run('math', '1.6.0')
 
-      expect(mockedLogger.info).toHaveBeenCalledWith('Installing math@1.6.0...')
-      expect(mockedLogger.info).toHaveBeenCalledWith(
-        'Successfully installed math@1.6.0'
+      expect(mockRegistry.getPackageInfo).toHaveBeenCalledWith('math')
+      expect(mockRegistry.downloadPackageTarball).toHaveBeenCalledWith(
+        'math',
+        '1.6.0',
+        '/home/user/.inkdrop/.ipm/tmp/math-1.6.0.tgz'
       )
-    }, 30000)
+      expect(mockedLogger.info).toHaveBeenCalledWith('Installing math@1.6.0...')
+      expect(mockedLogger.info).toHaveBeenCalledWith('Successfully installed math@1.6.0')
+    })
 
     it('should throw error for incompatible version', async () => {
-      // Try to install a version that doesn't exist or is incompatible
-      await expect(commandInstall.run('math', '999.0.0')).rejects.toThrow()
-    }, 10000)
+      await expect(commandInstall.run('math', '999.0.0')).rejects.toThrow(
+        'math@999.0.0 is not compatible with your Inkdrop v5.9.0'
+      )
+    })
 
     it('should throw error for non-existent package', async () => {
       await expect(
         commandInstall.run('non-existent-package-12345')
-      ).rejects.toThrow()
-    }, 10000)
+      ).rejects.toThrow('Package not found')
+    })
   })
 
   describe('getLatestCompatibleVersion', () => {
-    it('should return compatible version for current Inkdrop version', async () => {
-      const packageInfo = await mockRegistry.getPackageInfo('math')
-      const latestVersion =
-        commandInstall.getLatestCompatibleVersion(packageInfo)
+    it('should return compatible version for current Inkdrop version', () => {
+      const latestVersion = commandInstall.getLatestCompatibleVersion(mockMathPackageInfo)
 
-      expect(latestVersion).toBeTruthy()
-      expect(typeof latestVersion).toBe('string')
-      // Should be a valid semver version
-      expect(latestVersion).toMatch(/^\d+\.\d+\.\d+/)
-    }, 10000)
+      expect(latestVersion).toBe('1.6.1') // Latest compatible version
+      expect(mockRegistry.getPackageInfo).not.toHaveBeenCalled() // This test doesn't need API call
+    })
 
     it('should handle package with no compatible versions', () => {
       const mockPackageInfo: PackageInfo = {
@@ -274,30 +369,39 @@ describe('CommandInstall', () => {
   })
 
   describe('requestPackage', () => {
-    it('should successfully fetch the math package from real API', async () => {
+    it('should successfully fetch the math package from mocked API', async () => {
       const packageInfo = await commandInstall.requestPackage('math')
 
+      expect(mockRegistry.getPackageInfo).toHaveBeenCalledWith('math')
       expect(packageInfo).toBeDefined()
       expect(packageInfo.name).toBe('math')
       expect(packageInfo.releases).toBeDefined()
-      expect(packageInfo.releases.latest).toBeDefined()
+      expect(packageInfo.releases.latest).toBe('1.6.1')
       expect(packageInfo.versions).toBeDefined()
       expect(typeof packageInfo.versions).toBe('object')
-    }, 10000)
+    })
 
     it('should throw error for package with no releases', async () => {
-      // This should fail with a real package that has no releases (if any exist)
-      // For now, we'll test with a non-existent package
+      // Mock a package with no releases
+      const packageWithoutReleases = { ...mockMathPackageInfo, releases: {} as any }
+      mockRegistry.getPackageInfo.mockResolvedValueOnce(packageWithoutReleases)
+
+      await expect(commandInstall.requestPackage('no-releases-package')).rejects.toThrow(
+        'No releases available for no-releases-package'
+      )
+    })
+
+    it('should throw error for non-existent package', async () => {
       await expect(
         commandInstall.requestPackage('definitely-does-not-exist-12345')
-      ).rejects.toThrow()
-    }, 10000)
+      ).rejects.toThrow('Package not found')
+    })
   })
 
-  describe('integration test with real math package', () => {
+  describe('integration test with mocked math package', () => {
     it('should successfully complete the full installation flow for math package', async () => {
-      // This is a comprehensive integration test that uses the real API
-      // but mocks file system operations
+      // This is a comprehensive integration test that uses mocked API
+      // and mocks file system operations
 
       // Mock that package.json exists and has dependencies
       const mockPackageJson = JSON.stringify({
@@ -312,6 +416,14 @@ describe('CommandInstall', () => {
 
       await commandInstall.run('math')
 
+      // Verify API calls
+      expect(mockRegistry.getPackageInfo).toHaveBeenCalledWith('math')
+      expect(mockRegistry.downloadPackageTarball).toHaveBeenCalledWith(
+        'math',
+        '1.6.1',
+        '/home/user/.inkdrop/.ipm/tmp/math-1.6.1.tgz'
+      )
+
       // Verify the complete flow
       expect(mockedMkdir).toHaveBeenCalledWith('/home/user/.inkdrop/packages', {
         recursive: true
@@ -320,19 +432,15 @@ describe('CommandInstall', () => {
         recursive: true
       })
       expect(mockedExtract).toHaveBeenCalled()
-      expect(mockedLogger.info).toHaveBeenCalledWith(
-        expect.stringMatching(/Installing math@/)
-      )
-      expect(mockedLogger.info).toHaveBeenCalledWith(
-        expect.stringMatching(/Successfully installed math@/)
-      )
+      expect(mockedLogger.info).toHaveBeenCalledWith('Installing math@1.6.1...')
+      expect(mockedLogger.info).toHaveBeenCalledWith('Successfully installed math@1.6.1')
 
       // Verify dependency installation was attempted
       expect(mockedReadFile).toHaveBeenCalledWith(
         expect.stringMatching(/\/math\/package\.json$/),
         'utf8'
       )
-    }, 30000)
+    })
   })
 })
 
