@@ -51,12 +51,12 @@ Get outdated packages:
 const outdatedPackages = await ipm.getOutdated()
 ```
 
-### `install(package: PackageVersionInfo)`
+### `install(name: string, version?: string)`
 
 Install package:
 
 ```ts
-const result = await ipm.installPackage(package)
+const result = await ipm.install(package)
 ```
 
 ### `uninstall(name: string)`

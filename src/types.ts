@@ -18,7 +18,7 @@ export type PackageInfo = {
   }
   readme: string
   metadata: PackageMetadata
-  versions?: Record<string, PackageMetadata>
+  versions?: Record<string, PackageVersionInfo>
 }
 
 export type PackageMetadata = {
