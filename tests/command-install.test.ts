@@ -445,7 +445,7 @@ describe('CommandInstall', () => {
 
       // Verify dependency installation was attempted
       expect(mockedReadFile).toHaveBeenCalledWith(
-        expect.stringMatching(/\/math\/package\.json$/),
+        path.join(testInkdropDir, 'packages', 'math', 'package.json'),
         'utf8'
       )
     })
