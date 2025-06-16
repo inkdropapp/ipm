@@ -10,6 +10,9 @@ export default {
       useESM: true
     }]
   },
+  transformIgnorePatterns: [
+    'node_modules/(?!@inkdropapp/logger)'
+  ],
   testMatch: [
     '**/tests/**/*.test.ts'
   ],

@@ -7,7 +7,6 @@ import { Environment } from './environment'
 import { logger } from './logger'
 import { IPMRegistry } from './registry'
 import { PackageInfo, PackageMetadata, PackageVersionInfo } from './types'
-import { getErrorMessage } from './utils'
 
 export class CommandInstall {
   constructor(
@@ -32,7 +31,7 @@ export class CommandInstall {
       if (
         !release ||
         !semver.validRange(engine) ||
-        !semver.minSatisfying([version, '5.0.0'], engine)
+        !semver.satisfies(this.installedInkdropVersion, engine)
       ) {
         throw new Error(
           `${name}@${version} is not compatible with your Inkdrop v${this.installedInkdropVersion}. Compatible range: ${engine}`
