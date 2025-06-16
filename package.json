@@ -1,0 +1,32 @@
+{
+  "name": "@inkdropapp/ipm",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Inkdrop Package Manager",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "Inkdrop"
+  ],
+  "author": "Takuya Matsuyama <t@inkdrop.app>",
+  "homepage": "https://github.com/inkdropapp/ipm#readme",
+  "bugs": {
+    "url": "https://github.com/inkdropapp/ipm/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/inkdropapp/ipm.git"
+  },
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@eslint/js": "^9.29.0",
+    "@ianvs/prettier-plugin-sort-imports": "^4.4.2",
+    "@types/node": "^24.0.1",
+    "eslint": "^9.29.0",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.34.0"
+  }
+}
