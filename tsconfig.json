@@ -1,18 +1,21 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
+    "target": "ES2023",
     "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "lib": ["ES2023"],
     "module": "ESNext",
     "skipLibCheck": true,
-    /* Bundler mode */
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
+    /* Module resolution */
+    "moduleResolution": "node",
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "moduleDetection": "force",
-    "noEmit": true,
+    /* Emit */
+    "declaration": true,
+    "outDir": "./lib",
+    "rootDir": "./src",
+    "noEmit": false,
     /* Linting */
     "strict": true,
     "noUnusedLocals": false,
@@ -21,5 +24,6 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": "./" /* Base directory to resolve non-absolute module names. */
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["**/*.test.ts", "tests/**/*", "lib/**/*"]
 }

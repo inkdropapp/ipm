@@ -1,10 +1,14 @@
 {
   "name": "@inkdropapp/ipm",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "type": "module",
   "description": "Inkdrop Package Manager",
-  "main": "src/index.ts",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf lib",
+    "prepublishOnly": "npm run clean && npm run build",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:real-install": "jest tests/real-install.test.ts --testMatch=\"**/tests/real-install.test.ts\"",
