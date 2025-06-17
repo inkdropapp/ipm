@@ -7,6 +7,7 @@ import { Environment } from '../src/environment'
 import { logger } from '../src/logger'
 import { IPMRegistry } from '../src/registry'
 import { PackageInfo, PackageVersionInfo } from '../src/types'
+import { getLatestCompatibleVersion } from '../src/utils'
 
 jest.mock('fs/promises')
 jest.mock('tar')
@@ -222,8 +223,10 @@ describe('CommandInstall', () => {
 
   describe('getLatestCompatibleVersion', () => {
     it('should return compatible version for current Inkdrop version', () => {
-      const latestVersion =
-        commandInstall.getLatestCompatibleVersion(mockMathPackageInfo)
+      const latestVersion = getLatestCompatibleVersion(
+        mockMathPackageInfo,
+        testInkdropVersion
+      )
 
       expect(latestVersion).toBe('1.6.1') // Latest compatible version
       expect(mockRegistry.getPackageInfo).not.toHaveBeenCalled() // This test doesn't need API call
@@ -262,7 +265,7 @@ describe('CommandInstall', () => {
         }
       }
 
-      const result = commandInstall.getLatestCompatibleVersion(mockPackageInfo)
+      const result = getLatestCompatibleVersion(mockPackageInfo, testInkdropVersion)
       expect(result).toBeNull()
     })
   })

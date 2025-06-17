@@ -24,8 +24,8 @@ export class IPM {
     await command.run(name, version)
   }
 
-  async uninstall(name: string): Promise<void> {
+  async uninstall(name: string): Promise<boolean> {
     const command = new CommandUninstall(this.env)
-    await command.run(name)
+    return await command.run(name)
   }
 }

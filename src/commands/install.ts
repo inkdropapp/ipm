@@ -6,7 +6,8 @@ import { extract } from 'tar'
 import { Environment } from '../environment'
 import { logger } from '../logger'
 import { IPMRegistry } from '../registry'
-import { PackageInfo, PackageMetadata, PackageVersionInfo } from '../types'
+import { PackageMetadata, PackageVersionInfo } from '../types'
+import { getLatestCompatibleVersion } from '../utils'
 
 export class CommandInstall {
   constructor(
@@ -17,7 +18,10 @@ export class CommandInstall {
 
   async run(name: string, version?: string): Promise<void> {
     const pkg = await this.requestPackage(name)
-    const latestVersion = this.getLatestCompatibleVersion(pkg)
+    const latestVersion = getLatestCompatibleVersion(
+      pkg,
+      this.installedInkdropVersion
+    )
     let release = pkg.versions?.[latestVersion || '']
     if (!latestVersion || !release) {
       throw new Error(
@@ -86,34 +90,6 @@ export class CommandInstall {
     } else {
       throw new Error(`No releases available for ${packageName}`)
     }
-  }
-
-  getLatestCompatibleVersion(pack: PackageInfo) {
-    if (!this.installedInkdropVersion) {
-      return pack.releases.latest
-    }
-
-    let latestVersion: string | null = null
-    for (const version in pack.versions) {
-      const metadata = pack.versions[version]
-      if (!semver.valid(version)) continue
-      if (!metadata) continue
-
-      const engine = metadata.engines?.inkdrop || '*'
-      if (!semver.validRange(engine)) continue
-      if (
-        !semver.minSatisfying([this.installedInkdropVersion, '4.7.0'], engine)
-      ) {
-        continue
-      }
-      if (latestVersion == null) {
-        latestVersion = version
-      }
-      if (semver.gt(version, latestVersion)) {
-        latestVersion = version
-      }
-    }
-    return latestVersion
   }
 
   private async extractTarball(
