@@ -17,9 +17,11 @@ Check out @README
 
 ## Development Commands
 
-- **Linting**: `npx eslint .` - Run ESLint on TypeScript files
-- **Type checking**: `npx tsc --noEmit` - Check TypeScript types without emitting files
-- **Format code**: `npx prettier --write .` - Format code with Prettier
+- **Linting**: `npm run lint` - Run ESLint on TypeScript files
+- **Linting and fixing**: `npm run lint:fix` - Run ESLint on TypeScript files and automatically fix issues
+- **Type checking**: `npm run typecheck` - Check TypeScript types without emitting files
+- **Format code**: `npm run format` - Format code with Prettier
+- **Run tests**: `npm run test` - Run tests with Jest
 
 ## Project Structure
 
@@ -44,6 +46,7 @@ Update this note at each end of the task with the following format:
 ## Log: <task title>
 
 - **Date**: YYYY-MM-DD HH:mm
+- **Prompt**: <prompt you received>
 - **Issue**: <issue description>
 
 ### What I did: <brief description of what you did>
