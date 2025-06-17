@@ -71,11 +71,59 @@ Uninstall package:
 await ipm.uninstall('package-name')
 ```
 
+### `registry.getPackageInfo(name: string): Promise<PackageInfo>`
+
+Get a package from the registry:
+
+```ts
+const packageInfo = await ipm.registry.getPackageInfo('package-name')
+```
+
+- `name`: The name of the package to get
+
+### `registry.getPackageVersionInfo(name: string, version: string): Promise<PackageVersionInfo>`
+
+Get information about a specific version of a package:
+
+```ts
+const versionInfo = await ipm.registry.getPackageVersionInfo(
+  'package-name',
+  '1.0.0'
+)
+```
+
+- `name`: The name of the package
+- `version`: The specific version to get information for
+
+### `registry.search(params: { q: string, sort?: string, direction?: string }): Promise<PackageInfo[]>`
+
+Search packages with keyword:
+
+```ts
+const searchResults = await ipm.registry.search({ q: 'markdown' })
+```
+
+- `q`: Search query string
+- `sort`: Sort order ('score', 'majority', 'recency', 'newness', 'theme-majority', 'theme-recency', 'theme-newness')
+- `direction`: Sort direction ('desc' or 'asc')
+
+### `registry.getPackages(opts?: { sort: string, page: number, theme: boolean }): Promise<PackageInfo[]>`
+
+Get packages from the registry:
+
+```ts
+const packages = await ipm.registry.getPackages({ sort: 'recency', page: 0 })
+```
+
+- `sort`: Sort order ('majority', 'recency', 'newness', 'theme-majority', 'theme-recency', 'theme-newness')
+- `page`: Page number for pagination
+- `theme`: Whether to filter for themes only
+
 ## Development
 
 ### Prerequisites
 
-- Node.js 18.x or higher
+- Node.js 20.x or higher
 - npm
 
 ### Setup
