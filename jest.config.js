@@ -11,9 +11,17 @@ export default {
       {
         useESM: true
       }
+    ],
+    '^.+\\.js$': [
+      'ts-jest',
+      {
+        useESM: true
+      }
     ]
   },
-  transformIgnorePatterns: ['node_modules/(?!@inkdropapp/logger)'],
+  transformIgnorePatterns: [
+    'node_modules/(?!@inkdropapp/logger)'
+  ],
   testMatch: [
     '**/tests/**/*.test.ts',
     // Exclude real installation test from normal runs
