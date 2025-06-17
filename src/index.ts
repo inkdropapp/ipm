@@ -1,10 +1,11 @@
-import { CommandInstall } from './commands/install'
-import { CommandUpdate } from './commands/update'
-import { CommandUninstall } from './commands/uninstall'
 import { CommandGetOutdated } from './commands/get-outdated'
+import { CommandInstall } from './commands/install'
+import { CommandUninstall } from './commands/uninstall'
+import { CommandUpdate } from './commands/update'
 import { Environment } from './environment'
 import { IPMRegistry } from './registry'
 import { IPMOptions, OutdatedPackageInfo } from './types'
+import { normalizeVersion } from './utils'
 
 export class IPM {
   env: Environment
@@ -12,7 +13,7 @@ export class IPM {
   installedInkdropVersion: string
 
   constructor(public options: IPMOptions) {
-    this.installedInkdropVersion = options.appVersion
+    this.installedInkdropVersion = normalizeVersion(options.appVersion)
     this.env = new Environment(options)
     this.registry = new IPMRegistry(this.env.getInkdropApiUrl())
   }
