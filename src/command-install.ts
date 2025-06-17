@@ -200,19 +200,66 @@ export class CommandInstall {
     }
   }
 
+  private async resolveVersion(
+    name: string,
+    versionRange: string
+  ): Promise<string> {
+    try {
+      // If it's already a specific version without range specifiers, return as-is
+      if (semver.valid(versionRange)) {
+        return versionRange
+      }
+
+      // Fetch package metadata from npm registry
+      const registryUrl = `https://registry.npmjs.org/${name}`
+      const response = await axios({
+        method: 'GET',
+        url: registryUrl,
+        headers: {
+          Accept: 'application/json'
+        }
+      })
+
+      const packageData = response.data
+      const availableVersions = Object.keys(packageData.versions || {})
+        .filter(v => semver.valid(v))
+        .sort(semver.rcompare) // Sort in descending order
+
+      // Find the highest version that satisfies the range
+      const resolvedVersion = semver.maxSatisfying(
+        availableVersions,
+        versionRange
+      )
+
+      if (!resolvedVersion) {
+        throw new Error(
+          `No version found that satisfies range ${versionRange} for package ${name}`
+        )
+      }
+
+      return resolvedVersion
+    } catch (_error) {
+      logger.warn(
+        `Warning: Could not resolve version range ${versionRange} for ${name}, falling back to range removal`
+      )
+      // Fallback to the old behavior if resolution fails
+      return versionRange.replace(/^[\^~]/, '')
+    }
+  }
+
   private async fetchPackageDependencies(
     name: string,
     version: string
   ): Promise<Record<string, string> | null> {
     try {
-      const cleanVersion = version.replace(/^[\^~]/, '')
-      const registryUrl = `https://registry.npmjs.org/${name}/${cleanVersion}`
+      const resolvedVersion = await this.resolveVersion(name, version)
+      const registryUrl = `https://registry.npmjs.org/${name}/${resolvedVersion}`
 
       const response = await axios({
         method: 'GET',
         url: registryUrl,
         headers: {
-          'Accept': 'application/json'
+          Accept: 'application/json'
         }
       })
 
@@ -233,20 +280,20 @@ export class CommandInstall {
     await mkdir(tempDir, { recursive: true })
 
     try {
-      const cleanVersion = version.replace(/^[\^~]/, '')
+      const resolvedVersion = await this.resolveVersion(name, version)
 
       // Handle scoped packages (e.g., @matejmazur/react-katex)
       const packageFileName = name.startsWith('@')
         ? name.split('/')[1] // @matejmazur/react-katex -> react-katex
         : name
 
-      const tarballUrl = `https://registry.npmjs.org/${name}/-/${packageFileName}-${cleanVersion}.tgz`
+      const tarballUrl = `https://registry.npmjs.org/${name}/-/${packageFileName}-${resolvedVersion}.tgz`
       const tarballPath = path.join(
         tempDir,
-        `${packageFileName}-${cleanVersion}.tgz`
+        `${packageFileName}-${resolvedVersion}.tgz`
       )
 
-      logger.info(`  Installing dependency ${name}@${cleanVersion}...`)
+      logger.info(`  Installing dependency ${name}@${resolvedVersion}...`)
 
       const response = await axios({
         method: 'GET',
