@@ -34,3 +34,25 @@ Check out @README
 - No build step is currently configured - this is a TypeScript source project
 - Tests directory exists but no test framework is currently set up
 
+## Journaling
+
+You have to report what you did in this project at each end of the task in my Inkdrop note.
+Create one in the "Journal" notebook with the title "Log: Create a simple package manager for Inkdrop".
+Update this note at each end of the task with the following format:
+
+```
+## Log: <task title>
+
+- **Date**: YYYY-MM-DD HH:mm
+- **Issue**: <issue description>
+
+### What I did: <brief description of what you did>
+
+...
+
+### How I did it: <brief description of how you did it>
+
+...
+
+```
+
