@@ -206,41 +206,18 @@ export class CommandInstall {
   ): Promise<Record<string, string> | null> {
     try {
       const cleanVersion = version.replace(/^[\^~]/, '')
-      const packageFileName = name.startsWith('@') ? name.split('/')[1] : name
-
-      const tarballUrl = `https://registry.npmjs.org/${name}/-/${packageFileName}-${cleanVersion}.tgz`
-      const tempDir = path.join(this.env.getCacheDirectory(), 'npm-tmp')
-      const tarballPath = path.join(
-        tempDir,
-        `${packageFileName}-${cleanVersion}.tgz`
-      )
-      const extractDir = path.join(
-        tempDir,
-        `extract-${packageFileName}-${cleanVersion}`
-      )
-
-      await mkdir(tempDir, { recursive: true })
-      await mkdir(extractDir, { recursive: true })
+      const registryUrl = `https://registry.npmjs.org/${name}/${cleanVersion}`
 
       const response = await axios({
         method: 'GET',
-        url: tarballUrl,
-        responseType: 'arraybuffer'
+        url: registryUrl,
+        headers: {
+          'Accept': 'application/json'
+        }
       })
 
-      await writeFile(tarballPath, Buffer.from(response.data))
-
-      await this.extractTarball(tarballPath, extractDir)
-
-      const packageJsonPath = path.join(extractDir, 'package.json')
-      const packageJsonContent = await readFile(packageJsonPath, 'utf8')
-      const packageJson: PackageMetadata = JSON.parse(packageJsonContent)
-
-      // Clean up temp files
-      await rm(tarballPath, { force: true })
-      await rm(extractDir, { recursive: true, force: true })
-
-      return packageJson.dependencies || null
+      const packageData = response.data
+      return packageData.dependencies || null
     } catch (_error) {
       return null
     }
