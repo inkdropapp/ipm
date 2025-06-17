@@ -3,10 +3,10 @@ import path from 'path'
 import axios from 'axios'
 import semver from 'semver'
 import { extract } from 'tar'
-import { Environment } from './environment'
-import { logger } from './logger'
-import { IPMRegistry } from './registry'
-import { PackageInfo, PackageMetadata, PackageVersionInfo } from './types'
+import { Environment } from '../environment'
+import { logger } from '../logger'
+import { IPMRegistry } from '../registry'
+import { PackageInfo, PackageMetadata, PackageVersionInfo } from '../types'
 
 export class CommandInstall {
   constructor(

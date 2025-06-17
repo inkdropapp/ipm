@@ -45,7 +45,6 @@ Update this note at each end of the task with the following format:
 ```
 ## Log: <task title>
 
-- **Date**: YYYY-MM-DD HH:mm
 - **Prompt**: <prompt you received>
 - **Issue**: <issue description>
 

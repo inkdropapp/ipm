@@ -1,4 +1,5 @@
-import { CommandInstall } from './command-install'
+import { CommandInstall } from './commands/install'
+import { CommandUninstall } from './commands/uninstall'
 import { Environment } from './environment'
 import { IPMRegistry } from './registry'
 import { IPMOptions } from './types'
@@ -21,5 +22,10 @@ export class IPM {
       this.registry
     )
     await command.run(name, version)
+  }
+
+  async uninstall(name: string): Promise<void> {
+    const command = new CommandUninstall(this.env)
+    await command.run(name)
   }
 }
