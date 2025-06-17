@@ -11,6 +11,28 @@ The Inkdrop packages look similar to npm packages, which has `package.json` with
 This module is the Inkdrop Package Manager (IPM), which is a helper module for dealing with Inkdrop packages and themes for the desktop app, such as installing, updating, and uninstalling packages.
 It is an ES module, written in TypeScript, and is configured with modern TypeScript tooling.
 
+## Journaling workflow for AI Agent
+
+You have to report what you did in this project at each end of the task in my Inkdrop note.
+Create one in the "Journal" notebook with the title "Log: Create a simple package manager for Inkdrop".
+Update this note at each end of the task with the following format:
+
+```
+## Log: <task title>
+
+- **Prompt**: <prompt you received>
+- **Issue**: <issue description>
+
+### What I did: <brief description of what you did>
+
+...
+
+### How I did it: <brief description of how you did it>
+
+...
+
+```
+
 ## Features
 
 Check out @README
@@ -35,26 +57,4 @@ Check out @README
 - ESLint is configured to ignore unused variables/parameters prefixed with underscore
 - No build step is currently configured - this is a TypeScript source project
 - Tests directory exists but no test framework is currently set up
-
-## Journaling
-
-You have to report what you did in this project at each end of the task in my Inkdrop note.
-Create one in the "Journal" notebook with the title "Log: Create a simple package manager for Inkdrop".
-Update this note at each end of the task with the following format:
-
-```
-## Log: <task title>
-
-- **Prompt**: <prompt you received>
-- **Issue**: <issue description>
-
-### What I did: <brief description of what you did>
-
-...
-
-### How I did it: <brief description of how you did it>
-
-...
-
-```
 
