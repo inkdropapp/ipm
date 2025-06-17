@@ -1,11 +1,14 @@
+import { CommandGetInstalled } from './commands/get-installed'
 import { CommandGetOutdated } from './commands/get-outdated'
 import { CommandInstall } from './commands/install'
 import { CommandUninstall } from './commands/uninstall'
 import { CommandUpdate } from './commands/update'
 import { Environment } from './environment'
 import { IPMRegistry } from './registry'
-import { IPMOptions, OutdatedPackageInfo } from './types'
+import { IPMOptions, OutdatedPackageInfo, PackageMetadata } from './types'
 import { normalizeVersion } from './utils'
+
+export * from './types'
 
 export class IPM {
   env: Environment
@@ -47,6 +50,11 @@ export class IPM {
       this.env,
       this.registry
     )
+    return await command.run()
+  }
+
+  async getInstalled(): Promise<PackageMetadata[]> {
+    const command = new CommandGetInstalled(this.env)
     return await command.run()
   }
 }
