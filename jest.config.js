@@ -6,19 +6,20 @@ export default {
     '^(\\.{1,2}/.*)\\.js$': '$1'
   },
   transform: {
-    '^.+\\.ts$': ['ts-jest', {
-      useESM: true
-    }]
+    '^.+\\.ts$': [
+      'ts-jest',
+      {
+        useESM: true
+      }
+    ]
   },
-  transformIgnorePatterns: [
-    'node_modules/(?!@inkdropapp/logger)'
-  ],
+  transformIgnorePatterns: ['node_modules/(?!@inkdropapp/logger)'],
   testMatch: [
     '**/tests/**/*.test.ts',
-    '!**/tests/real-install.test.ts' // Exclude real installation test from normal runs
+    // Exclude real installation test from normal runs
+    '!**/tests/real-install.test.ts',
+    '!**/tests/real-get-outdated.test.ts'
   ],
-  collectCoverageFrom: [
-    'src/**/*.ts',
-    '!src/**/*.d.ts'
-  ]
+  collectCoverageFrom: ['src/**/*.ts', '!src/**/*.d.ts']
 }
+
