@@ -21,14 +21,6 @@ const options = {
 const ipm = new IPM(options)
 ```
 
-### `getPackage(name: string): Promise<PackageInfo>`
-
-Get package metadata:
-
-```ts
-const metadata = await ipm.getPackage('package-name')
-```
-
 ### `getInstalled(): Promise<PackageMetadata[]>`
 
 List installed packages:
