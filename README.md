@@ -21,7 +21,7 @@ const options = {
 const ipm = new IPM(options)
 ```
 
-### `getPackage(name: string, version?: string)`
+### `getPackage(name: string): Promise<PackageInfo>`
 
 Get package metadata:
 
@@ -29,15 +29,9 @@ Get package metadata:
 const metadata = await ipm.getPackage('package-name')
 ```
 
-Get with a specific package version:
+### `getInstalled(): Promise<PackageMetadata[]>`
 
-```ts
-const version = await ipm.getPackage('package-name', 'version-name')
-```
-
-### `getInstalled()`
-
-Get installed packages:
+List installed packages:
 
 ```ts
 const installedPackages = await ipm.getInstalled()
@@ -45,7 +39,7 @@ const installedPackages = await ipm.getInstalled()
 
 ### `getOutdated(): Promise<OutdatedPackageInfo[]>`
 
-Get outdated packages:
+List outdated packages:
 
 ```ts
 const outdatedPackages = await ipm.getOutdated()
