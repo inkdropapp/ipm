@@ -1,4 +1,5 @@
 import { CommandInstall } from './commands/install'
+import { CommandUpdate } from './commands/update'
 import { CommandUninstall } from './commands/uninstall'
 import { CommandGetOutdated } from './commands/get-outdated'
 import { Environment } from './environment'
@@ -18,6 +19,15 @@ export class IPM {
 
   async install(name: string, version?: string): Promise<void> {
     const command = new CommandInstall(
+      this.installedInkdropVersion,
+      this.env,
+      this.registry
+    )
+    await command.run(name, version)
+  }
+
+  async update(name: string, version?: string): Promise<void> {
+    const command = new CommandUpdate(
       this.installedInkdropVersion,
       this.env,
       this.registry

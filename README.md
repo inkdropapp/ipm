@@ -53,11 +53,29 @@ const outdatedPackages = await ipm.getOutdated()
 
 ### `install(name: string, version?: string)`
 
+- `name`: Name of the package to install
+- `version`: Optional specific version to install. If not provided, it installs the latest version.
+
+````ts
+
 Install package:
 
 ```ts
 const result = await ipm.install(package)
-```
+````
+
+### `update(name: string, version?: string)`
+
+- `name`: Name of the package to update
+- `version`: Optional specific version to update to. If not provided, it updates to the latest version.
+
+````ts
+
+Update package:
+
+```ts
+const result = await ipm.update('package-name')
+````
 
 ### `uninstall(name: string)`
 
