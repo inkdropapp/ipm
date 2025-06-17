@@ -1,4 +1,4 @@
-import { mkdir, readFile, rm } from 'fs/promises'
+import { access, mkdir, readFile, rm, writeFile } from 'fs/promises'
 import path from 'path'
 import axios from 'axios'
 import semver from 'semver'
@@ -137,11 +137,20 @@ export class CommandInstall {
       if (packageJson.dependencies) {
         const nodeModulesDir = path.join(packageDir, 'node_modules')
         await mkdir(nodeModulesDir, { recursive: true })
+        const installed = new Set<string>()
+        const dependenciesToInstall: Array<{ name: string; version: string }> =
+          []
 
-        for (const [depName, depVersion] of Object.entries(
-          packageJson.dependencies
-        )) {
-          await this.installNpmDependency(depName, depVersion, nodeModulesDir)
+        // Collect all dependencies recursively first
+        await this.collectDependencies(
+          packageJson.dependencies,
+          dependenciesToInstall,
+          installed
+        )
+
+        // Install all dependencies in the root node_modules
+        for (const dep of dependenciesToInstall) {
+          await this.installNpmDependency(dep.name, dep.version, nodeModulesDir)
         }
       }
     } catch (error) {
@@ -151,6 +160,89 @@ export class CommandInstall {
           error
         )
       }
+    }
+  }
+
+  private async collectDependencies(
+    dependencies: Record<string, string>,
+    dependenciesToInstall: Array<{ name: string; version: string }>,
+    installed: Set<string>
+  ): Promise<void> {
+    for (const [depName, depVersion] of Object.entries(dependencies)) {
+      const dependencyKey = `${depName}@${depVersion}`
+
+      if (installed.has(dependencyKey)) {
+        continue
+      }
+
+      installed.add(dependencyKey)
+      dependenciesToInstall.push({ name: depName, version: depVersion })
+
+      // Fetch the package.json to get nested dependencies
+      try {
+        const nestedDependencies = await this.fetchPackageDependencies(
+          depName,
+          depVersion
+        )
+        if (nestedDependencies) {
+          await this.collectDependencies(
+            nestedDependencies,
+            dependenciesToInstall,
+            installed
+          )
+        }
+      } catch (error) {
+        logger.warn(
+          `Warning: Could not fetch dependencies for ${depName}@${depVersion}:`,
+          error
+        )
+      }
+    }
+  }
+
+  private async fetchPackageDependencies(
+    name: string,
+    version: string
+  ): Promise<Record<string, string> | null> {
+    try {
+      const cleanVersion = version.replace(/^[\^~]/, '')
+      const packageFileName = name.startsWith('@') ? name.split('/')[1] : name
+
+      const tarballUrl = `https://registry.npmjs.org/${name}/-/${packageFileName}-${cleanVersion}.tgz`
+      const tempDir = path.join(this.env.getCacheDirectory(), 'npm-tmp')
+      const tarballPath = path.join(
+        tempDir,
+        `${packageFileName}-${cleanVersion}.tgz`
+      )
+      const extractDir = path.join(
+        tempDir,
+        `extract-${packageFileName}-${cleanVersion}`
+      )
+
+      await mkdir(tempDir, { recursive: true })
+      await mkdir(extractDir, { recursive: true })
+
+      const response = await axios({
+        method: 'GET',
+        url: tarballUrl,
+        responseType: 'arraybuffer'
+      })
+
+      await writeFile(tarballPath, Buffer.from(response.data))
+
+      await this.extractTarball(tarballPath, extractDir)
+
+      const packageJsonPath = path.join(extractDir, 'package.json')
+      const packageJsonContent = await readFile(packageJsonPath, 'utf8')
+      const packageJson: PackageMetadata = JSON.parse(packageJsonContent)
+
+      // Clean up temp files
+      await rm(tarballPath, { force: true })
+      await rm(extractDir, { recursive: true, force: true })
+
+      return packageJson.dependencies || null
+    } catch (_error) {
+      return null
     }
   }
 
@@ -185,9 +277,7 @@ export class CommandInstall {
         responseType: 'arraybuffer'
       })
 
-      await import('fs/promises').then(fs =>
-        fs.writeFile(tarballPath, Buffer.from(response.data))
-      )
+      await writeFile(tarballPath, Buffer.from(response.data))
 
       if (await this.pathExists(depDir)) {
         await rm(depDir, { recursive: true, force: true })
@@ -206,7 +296,7 @@ export class CommandInstall {
 
   private async pathExists(filePath: string): Promise<boolean> {
     try {
-      await import('fs/promises').then(fs => fs.access(filePath))
+      await access(filePath)
       return true
     } catch {
       return false
