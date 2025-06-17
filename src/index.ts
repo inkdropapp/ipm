@@ -1,8 +1,9 @@
 import { CommandInstall } from './commands/install'
 import { CommandUninstall } from './commands/uninstall'
+import { CommandGetOutdated } from './commands/get-outdated'
 import { Environment } from './environment'
 import { IPMRegistry } from './registry'
-import { IPMOptions } from './types'
+import { IPMOptions, OutdatedPackageInfo } from './types'
 
 export class IPM {
   env: Environment
@@ -27,5 +28,14 @@ export class IPM {
   async uninstall(name: string): Promise<boolean> {
     const command = new CommandUninstall(this.env)
     return await command.run(name)
+  }
+
+  async getOutdated(): Promise<OutdatedPackageInfo[]> {
+    const command = new CommandGetOutdated(
+      this.installedInkdropVersion,
+      this.env,
+      this.registry
+    )
+    return await command.run()
   }
 }

@@ -43,7 +43,7 @@ Get installed packages:
 const installedPackages = await ipm.getInstalled()
 ```
 
-### `getOutdated()`
+### `getOutdated(): Promise<OutdatedPackageInfo[]>`
 
 Get outdated packages:
 
