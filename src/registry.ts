@@ -1,15 +1,11 @@
 import { writeFile } from 'fs/promises'
 import axios from 'axios'
-import type { PackageInfo, PackageVersionInfo } from './types'
+import type {
+  PackageInfo,
+  PackageSortOptions,
+  PackageVersionInfo
+} from './types'
 import type { AxiosInstance } from 'axios'
-
-type SortOptions =
-  | 'majority'
-  | 'recency'
-  | 'newness'
-  | 'theme-majority'
-  | 'theme-recency'
-  | 'theme-newness'
 
 export class IPMRegistry {
   apiClient: AxiosInstance
@@ -61,7 +57,7 @@ export class IPMRegistry {
    */
   async search(params: {
     q: string
-    sort?: SortOptions | 'score'
+    sort?: PackageSortOptions | 'score'
     direction?: string
   }): Promise<PackageInfo[]> {
     const { sort = 'score', q = '', direction = 'desc' } = params || {}
@@ -77,7 +73,7 @@ export class IPMRegistry {
   }
 
   async getPackages(opts?: {
-    sort: SortOptions
+    sort: PackageSortOptions
     page: number
     theme: boolean
   }): Promise<PackageInfo[]> {

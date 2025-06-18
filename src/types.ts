@@ -1,3 +1,11 @@
+export type PackageSortOptions =
+  | 'majority'
+  | 'recency'
+  | 'newness'
+  | 'theme-majority'
+  | 'theme-recency'
+  | 'theme-newness'
+
 export interface IPMOptions {
   appVersion: string
   appHomePath?: string
