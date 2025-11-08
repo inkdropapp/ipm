@@ -33,9 +33,9 @@
   "license": "UNLICENSED",
   "dependencies": {
     "@inkdropapp/logger": "^4.0.0",
-    "axios": "^1.10.0",
-    "semver": "^7.7.2",
-    "tar": "^7.4.3"
+    "axios": "^1.13.2",
+    "semver": "^7.7.3",
+    "tar": "^7.5.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.29.0",
