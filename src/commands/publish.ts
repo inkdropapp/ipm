@@ -3,18 +3,48 @@ import * as fs from 'fs/promises'
 import path from 'path'
 import axios, { isAxiosError } from 'axios'
 import FormData from 'form-data'
-import { PACKAGE_MAX_SIZE } from 'src/consts'
 import * as tar from 'tar'
+import { PACKAGE_MAX_SIZE } from '../consts'
 import { Environment } from '../environment'
 import { logger } from '../logger'
+import { IPMRegistry } from '../registry'
+import type { AxiosInstance } from 'axios'
 
 /**
  * Command to publish a new Inkdrop package
  */
 export class CommandPublish {
-  constructor(public env: Environment) {}
+  apiClient: AxiosInstance
 
-  async run(): Promise<boolean> {
+  constructor(
+    public env: Environment,
+    public registry: IPMRegistry
+  ) {
+    this.apiClient = this.getAxiosInstance()
+  }
+
+  private getAxiosInstance() {
+    // Get local HTTP server config with auth
+    const accessKey = this.env.getInkdropAccessKey()
+    if (!accessKey) {
+      throw new Error('The access key is not configured.')
+    }
+
+    const apiBaseUrl = this.env.getInkdropApiUrl()
+    return axios.create({
+      baseURL: `${apiBaseUrl}/v2/packages`,
+      auth: {
+        username: accessKey.accessKeyId,
+        password: accessKey.secretAccessKey
+      },
+      headers: {
+        'X-API-KEY': '1'
+      }
+    })
+  }
+
+  async run(opts: { dryrun?: boolean }): Promise<boolean> {
+    const { dryrun = false } = opts
     const repoDir = process.cwd()
 
     try {
@@ -33,7 +63,7 @@ export class CommandPublish {
       const { filePath } = await this.createTarball(pkg, repoDir)
 
       // Step 3 - Upload the tarball to the Inkdrop package registry via the local http server
-      await this.uploadTarball(pkg, filePath, repository!)
+      await this.uploadTarball(pkg, filePath, repository!, dryrun)
 
       // Step 4 - Clean up the created tarball file
       await rm(filePath, { force: true })
@@ -47,7 +77,7 @@ export class CommandPublish {
     }
   }
 
-  private getRepositoryId(pack: any = {}): string | null {
+  getRepositoryId(pack: any = {}): string | null {
     const repository = pack.repository?.url ?? pack.repository
 
     if (!repository || typeof repository !== 'string') {
@@ -68,7 +98,7 @@ export class CommandPublish {
     return null
   }
 
-  private async validatePackageContents(pkg: any, repoDir: string) {
+  async validatePackageContents(pkg: any, _repoDir: string) {
     try {
       // Validate required fields
       if (!pkg.name || typeof pkg.name !== 'string') {
@@ -103,7 +133,7 @@ export class CommandPublish {
     }
   }
 
-  private async createTarball(pkg: any, repoDir: string) {
+  async createTarball(pkg: any, repoDir: string) {
     const tempDir = path.join(this.env.getCacheDirectory(), 'publish')
     await fs.mkdir(tempDir, { recursive: true })
 
@@ -171,37 +201,17 @@ export class CommandPublish {
     }
   }
 
-  private getAxiosInstance() {
-    // Get local HTTP server config with auth
-    const config = this.env.getLocalHttpServerConfig()
-    if (!config) {
-      throw new Error(
-        'Local HTTP server authentication is not configured. Please set INKDROP_LOCAL_HTTP_SERVER_USERNAME and INKDROP_LOCAL_HTTP_SERVER_PASSWORD environment variables.'
-      )
-    }
-
-    const { url, auth } = config
-    return axios.create({
-      baseURL: url,
-      auth: {
-        username: auth.username,
-        password: auth.password
-      }
-    })
-  }
-
   private async uploadTarball(
     pkg: any,
     filePath: string,
-    repositoryId: string
+    repositoryId: string,
+    dryrun: boolean = false
   ) {
-    const apiClient = this.getAxiosInstance()
-
     // Check if the package already exists
     let isNewPackage = true
     try {
-      const checkResponse = await apiClient.get(`/v2/packages/${pkg.name}`)
-      isNewPackage = !checkResponse.data
+      const checkResponse = await this.registry.getPackageInfo(pkg.name)
+      isNewPackage = !checkResponse
     } catch (error: any) {
       if (error.response?.status !== 404) {
         // If it's not a 404, something else went wrong
@@ -219,17 +229,16 @@ export class CommandPublish {
 
     if (isNewPackage) {
       form.append('repository', repositoryId)
+      form.append('dryrun', dryrun ? 'true' : 'false')
     }
 
     // Determine the endpoint
-    const endpoint = isNewPackage
-      ? `/v2/packages`
-      : `/v2/packages/${pkg.name}/versions`
+    const endpoint = isNewPackage ? `` : `/${pkg.name}/versions`
 
     logger.info(`Uploading to ${endpoint}...`)
 
     try {
-      const response = await apiClient.post(endpoint, form, {
+      const response = await this.apiClient.post(endpoint, form, {
         headers: {
           ...form.getHeaders()
         },

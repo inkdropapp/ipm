@@ -13,10 +13,8 @@ export interface IPMOptions {
   resourcePath?: string
   apiUrl?: string
   packagesUrl?: string
-  localHttpServerHostname?: string
-  localHttpServerPort?: number
-  localHttpServerUsername?: string
-  localHttpServerPassword?: string
+  accessKeyId?: string
+  secretAccessKey?: string
 }
 
 export type PackageInfo = {

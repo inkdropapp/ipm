@@ -14,7 +14,6 @@
     /* Emit */
     "declaration": true,
     "outDir": "./lib",
-    "rootDir": "./src",
     "noEmit": false,
     /* Linting */
     "strict": true,
@@ -24,6 +23,6 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": "./" /* Base directory to resolve non-absolute module names. */
   },
-  "include": ["src"],
-  "exclude": ["**/*.test.ts", "tests/**/*", "lib/**/*"]
+  "include": ["src", "tests"],
+  "exclude": ["lib/**/*"]
 }

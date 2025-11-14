@@ -53,31 +53,18 @@ export class Environment {
 
   getInkdropApiUrl() {
     const value = this.options.apiUrl || process.env.INKDROP_API_URL
-    return value != null ? value : 'https://api.inkdrop.app/v2'
+    return value != null ? value : 'https://api.inkdrop.app'
   }
 
-  getLocalHttpServerConfig() {
-    const hostname =
-      this.options.localHttpServerHostname ||
-      process.env.INKDROP_LOCAL_HTTP_SERVER_HOSTNAME ||
-      'localhost'
-    const port =
-      this.options.localHttpServerPort ||
-      Number(process.env.INKDROP_LOCAL_HTTP_SERVER_PORT || 19840)
-    const username =
-      this.options.localHttpServerUsername ||
-      process.env.INKDROP_LOCAL_HTTP_SERVER_USERNAME
-    const password =
-      this.options.localHttpServerPassword ||
-      process.env.INKDROP_LOCAL_HTTP_SERVER_PASSWORD
-    const url = `http://${hostname}:${port}`
-    return username && password
+  getInkdropAccessKey() {
+    const accessKeyId =
+      this.options.accessKeyId || process.env.INKDROP_ACCESS_KEY_ID
+    const secretAccessKey =
+      this.options.secretAccessKey || process.env.INKDROP_SECRET_ACCESS_KEY
+    return accessKeyId && secretAccessKey
       ? {
-          url,
-          auth: {
-            username,
-            password
-          }
+          accessKeyId,
+          secretAccessKey
         }
       : null
   }
