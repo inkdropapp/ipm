@@ -59,8 +59,10 @@ export class IPM {
     return await command.run()
   }
 
-  async publish(opts: { dryrun?: boolean }): Promise<void> {
+  async publish(
+    opts: { dryrun?: boolean } = { dryrun: false }
+  ): Promise<boolean> {
     const command = new CommandPublish(this.env, this.registry)
-    await command.run(opts)
+    return await command.run(opts)
   }
 }

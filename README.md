@@ -71,6 +71,12 @@ Uninstall package:
 await ipm.uninstall('package-name')
 ```
 
+### `publish(opts: { dryrun?: boolean })`
+
+Publish a package to the registry. It will use `cwd` to locate the package to publish.
+
+- `dryrun`: If true, simulates the publish process without actually publishing. Default is `false`.
+
 ### `registry.getPackageInfo(name: string): Promise<PackageInfo>`
 
 Get a package from the registry:
