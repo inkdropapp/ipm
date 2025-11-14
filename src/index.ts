@@ -1,6 +1,7 @@
 import { CommandGetInstalled } from './commands/get-installed'
 import { CommandGetOutdated } from './commands/get-outdated'
 import { CommandInstall } from './commands/install'
+import { CommandPublish } from './commands/publish'
 import { CommandUninstall } from './commands/uninstall'
 import { CommandUpdate } from './commands/update'
 import { Environment } from './environment'
@@ -56,5 +57,10 @@ export class IPM {
   async getInstalled(): Promise<PackageMetadata[]> {
     const command = new CommandGetInstalled(this.env)
     return await command.run()
+  }
+
+  async publish(opts: { dryrun?: boolean }): Promise<void> {
+    const command = new CommandPublish(this.env, this.registry)
+    await command.run(opts)
   }
 }
