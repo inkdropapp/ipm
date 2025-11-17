@@ -13,6 +13,8 @@ export interface IPMOptions {
   resourcePath?: string
   apiUrl?: string
   packagesUrl?: string
+  accessKeyId?: string
+  secretAccessKey?: string
 }
 
 export type PackageInfo = {

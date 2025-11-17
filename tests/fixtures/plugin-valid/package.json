@@ -1,0 +1,20 @@
+{
+  "name": "plugin-valid",
+  "version": "1.0.0",
+  "description": "A valid plugin fixture",
+  "homepage": "https://github.com/inkdropapp/inkdrop-vim#readme",
+  "bugs": {
+    "url": "https://github.com/inkdropapp/inkdrop-vim/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/inkdropapp/inkdrop-vim.git"
+  },
+  "license": "MIT",
+  "author": "Takuya Matsuyama",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}

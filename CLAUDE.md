@@ -57,4 +57,3 @@ Check out @README
 - ESLint is configured to ignore unused variables/parameters prefixed with underscore
 - No build step is currently configured - this is a TypeScript source project
 - Tests directory exists but no test framework is currently set up
-

@@ -1,6 +1,7 @@
 import { CommandGetInstalled } from './commands/get-installed'
 import { CommandGetOutdated } from './commands/get-outdated'
 import { CommandInstall } from './commands/install'
+import { CommandPublish } from './commands/publish'
 import { CommandUninstall } from './commands/uninstall'
 import { CommandUpdate } from './commands/update'
 import { Environment } from './environment'
@@ -16,7 +17,9 @@ export class IPM {
   installedInkdropVersion: string
 
   constructor(public options: IPMOptions) {
-    this.installedInkdropVersion = normalizeVersion(options.appVersion)
+    this.installedInkdropVersion = normalizeVersion(
+      process.env.INKDROP_VERSION || options.appVersion
+    )
     this.env = new Environment(options)
     this.registry = new IPMRegistry(this.env.getInkdropApiUrl())
   }
@@ -56,5 +59,12 @@ export class IPM {
   async getInstalled(): Promise<PackageMetadata[]> {
     const command = new CommandGetInstalled(this.env)
     return await command.run()
+  }
+
+  async publish(
+    opts: { dryrun?: boolean } = { dryrun: false }
+  ): Promise<boolean> {
+    const command = new CommandPublish(this.env, this.registry)
+    return await command.run(opts)
   }
 }

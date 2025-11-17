@@ -19,9 +19,7 @@ export default {
       }
     ]
   },
-  transformIgnorePatterns: [
-    'node_modules/(?!@inkdropapp/logger)'
-  ],
+  transformIgnorePatterns: ['node_modules/(?!@inkdropapp/logger)'],
   testMatch: [
     '**/tests/**/*.test.ts',
     // Exclude real installation test from normal runs
@@ -30,4 +28,3 @@ export default {
   ],
   collectCoverageFrom: ['src/**/*.ts', '!src/**/*.d.ts']
 }
-

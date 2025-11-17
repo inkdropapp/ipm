@@ -20,7 +20,7 @@ export class CommandGetOutdated {
 
     try {
       const installedPkgs = await this.getInstalledPackages(packagesDir)
-      
+
       for (const pkg of installedPkgs) {
         try {
           const packageInfo = await this.registry.getPackageInfo(pkg.name)
@@ -37,7 +37,10 @@ export class CommandGetOutdated {
             })
           }
         } catch (error) {
-          logger.warn(`Warning: Could not check updates for ${pkg.name}:`, error)
+          logger.warn(
+            `Warning: Could not check updates for ${pkg.name}:`,
+            error
+          )
         }
       }
     } catch (error) {
@@ -48,12 +51,14 @@ export class CommandGetOutdated {
     return outdatedPackages
   }
 
-  private async getInstalledPackages(packagesDir: string): Promise<PackageMetadata[]> {
+  private async getInstalledPackages(
+    packagesDir: string
+  ): Promise<PackageMetadata[]> {
     const installedPackages: PackageMetadata[] = []
 
     try {
       const packageNames = await readdir(packagesDir)
-      
+
       for (const packageName of packageNames) {
         const packageDir = path.join(packagesDir, packageName)
         const packageJsonPath = path.join(packageDir, 'package.json')
@@ -63,7 +68,10 @@ export class CommandGetOutdated {
           const packageJson: PackageMetadata = JSON.parse(packageJsonContent)
           installedPackages.push(packageJson)
         } catch (error) {
-          logger.warn(`Warning: Could not read package.json for ${packageName}:`, error)
+          logger.warn(
+            `Warning: Could not read package.json for ${packageName}:`,
+            error
+          )
         }
       }
     } catch (error) {

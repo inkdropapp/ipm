@@ -1,6 +1,6 @@
 {
   "name": "@inkdropapp/ipm",
-  "version": "0.0.3",
+  "version": "1.0.0-beta.4",
   "type": "module",
   "description": "Inkdrop Package Manager",
   "main": "lib/index.js",
@@ -11,6 +11,7 @@
     "prepublishOnly": "npm run clean && npm run build",
     "test": "jest",
     "test:watch": "jest --watch",
+    "test:ci": "jest --testPathIgnorePatterns=\"command-publish.test.ts\"",
     "test:real-install": "jest tests/real-install.test.ts --testMatch=\"**/tests/real-install.test.ts\"",
     "test:real-outdated": "jest tests/real-get-outdated.test.ts --testMatch=\"**/tests/real-get-outdated.test.ts\"",
     "format": "prettier --write .",
@@ -45,11 +46,12 @@
     "@types/node": "^24.10.0",
     "@types/semver": "^7.7.1",
     "@types/tar": "^6.1.13",
+    "dotenv": "^17.2.3",
     "eslint": "^9.39.1",
     "jest": "^30.2.0",
     "prettier": "^3.6.2",
     "ts-jest": "^29.4.5",
-    "tsup": "^8.5.0",
+    "tsup": "^8.5.1",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.46.3"
   }

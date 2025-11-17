@@ -84,4 +84,3 @@ describe('Real Installation Test', () => {
     }
   }, 60000) // 60 second timeout for real API call and file operations
 })
-

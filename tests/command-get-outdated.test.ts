@@ -1,6 +1,6 @@
-import { jest } from '@jest/globals'
 import { readdir, readFile } from 'fs/promises'
 import path from 'path'
+import { jest } from '@jest/globals'
 import { CommandGetOutdated } from '../src/commands/get-outdated'
 import { Environment } from '../src/environment'
 import { logger } from '../src/logger'
@@ -60,7 +60,8 @@ const mockRegistryPackage1: PackageInfo = {
         inkdrop: '>=5.0.0'
       },
       dist: {
-        tarball: 'https://api.inkdrop.app/packages/test-package-1/-/test-package-1-1.0.0.tgz'
+        tarball:
+          'https://api.inkdrop.app/packages/test-package-1/-/test-package-1-1.0.0.tgz'
       }
     },
     '1.5.0': {
@@ -73,7 +74,8 @@ const mockRegistryPackage1: PackageInfo = {
         inkdrop: '>=5.0.0'
       },
       dist: {
-        tarball: 'https://api.inkdrop.app/packages/test-package-1/-/test-package-1-1.5.0.tgz'
+        tarball:
+          'https://api.inkdrop.app/packages/test-package-1/-/test-package-1-1.5.0.tgz'
       }
     }
   }
@@ -107,7 +109,8 @@ const mockRegistryPackage2: PackageInfo = {
         inkdrop: '>=5.0.0'
       },
       dist: {
-        tarball: 'https://api.inkdrop.app/packages/test-package-2/-/test-package-2-2.0.0.tgz'
+        tarball:
+          'https://api.inkdrop.app/packages/test-package-2/-/test-package-2-2.0.0.tgz'
       }
     }
   }
@@ -127,16 +130,24 @@ describe('CommandGetOutdated', () => {
 
     // Create mock environment
     mockEnvironment = new Environment({ appVersion: testInkdropVersion })
-    jest.spyOn(mockEnvironment, 'getInkdropDirectory').mockReturnValue(testInkdropDir)
+    jest
+      .spyOn(mockEnvironment, 'getInkdropDirectory')
+      .mockReturnValue(testInkdropDir)
 
     // Create mock registry
-    mockRegistry = new IPMRegistry('http://test-api.inkdrop.app') as jest.Mocked<IPMRegistry>
-    
+    mockRegistry = new IPMRegistry(
+      'http://test-api.inkdrop.app'
+    ) as jest.Mocked<IPMRegistry>
+
     // Reset registry mock methods
     mockRegistry.getPackageInfo = jest.fn()
 
     // Create command instance
-    command = new CommandGetOutdated(testInkdropVersion, mockEnvironment, mockRegistry)
+    command = new CommandGetOutdated(
+      testInkdropVersion,
+      mockEnvironment,
+      mockRegistry
+    )
 
     // Default mock behaviors
     mockedReaddir.mockResolvedValue([])
@@ -179,8 +190,11 @@ describe('CommandGetOutdated', () => {
     describe('with outdated packages', () => {
       beforeEach(() => {
         // Mock installed packages
-        mockedReaddir.mockResolvedValue(['test-package-1', 'test-package-2'] as any)
-        
+        mockedReaddir.mockResolvedValue([
+          'test-package-1',
+          'test-package-2'
+        ] as any)
+
         // Mock package.json files
         mockedReadFile
           .mockResolvedValueOnce(JSON.stringify(mockInstalledPackage1))
@@ -211,8 +225,12 @@ describe('CommandGetOutdated', () => {
           path.join(testPackagesDir, 'test-package-2', 'package.json'),
           'utf8'
         )
-        expect(mockRegistry.getPackageInfo).toHaveBeenCalledWith('test-package-1')
-        expect(mockRegistry.getPackageInfo).toHaveBeenCalledWith('test-package-2')
+        expect(mockRegistry.getPackageInfo).toHaveBeenCalledWith(
+          'test-package-1'
+        )
+        expect(mockRegistry.getPackageInfo).toHaveBeenCalledWith(
+          'test-package-2'
+        )
       })
     })
 
@@ -220,9 +238,11 @@ describe('CommandGetOutdated', () => {
       beforeEach(() => {
         // Mock installed packages
         mockedReaddir.mockResolvedValue(['test-package-2'] as any)
-        
+
         // Mock package.json file
-        mockedReadFile.mockResolvedValueOnce(JSON.stringify(mockInstalledPackage2))
+        mockedReadFile.mockResolvedValueOnce(
+          JSON.stringify(mockInstalledPackage2)
+        )
 
         // Mock registry response - same version as installed
         mockRegistry.getPackageInfo.mockResolvedValueOnce(mockRegistryPackage2)
@@ -232,7 +252,9 @@ describe('CommandGetOutdated', () => {
         const result = await command.run()
 
         expect(result).toEqual([])
-        expect(mockRegistry.getPackageInfo).toHaveBeenCalledWith('test-package-2')
+        expect(mockRegistry.getPackageInfo).toHaveBeenCalledWith(
+          'test-package-2'
+        )
       })
     })
 
@@ -245,15 +267,21 @@ describe('CommandGetOutdated', () => {
 
       it('should handle registry errors gracefully and continue with other packages', async () => {
         mockedReaddir.mockResolvedValue(['test-package-1'] as any)
-        mockedReadFile.mockResolvedValueOnce(JSON.stringify(mockInstalledPackage1))
-        
+        mockedReadFile.mockResolvedValueOnce(
+          JSON.stringify(mockInstalledPackage1)
+        )
+
         // Mock registry error for first package
-        mockRegistry.getPackageInfo.mockRejectedValueOnce(new Error('Registry error'))
+        mockRegistry.getPackageInfo.mockRejectedValueOnce(
+          new Error('Registry error')
+        )
 
         const result = await command.run()
 
         expect(result).toEqual([])
-        expect(mockRegistry.getPackageInfo).toHaveBeenCalledWith('test-package-1')
+        expect(mockRegistry.getPackageInfo).toHaveBeenCalledWith(
+          'test-package-1'
+        )
         expect(mockedLogger.warn).toHaveBeenCalledWith(
           'Warning: Could not check updates for test-package-1:',
           expect.any(Error)
@@ -263,7 +291,7 @@ describe('CommandGetOutdated', () => {
       it('should handle invalid package.json files gracefully', async () => {
         // Reset registry mock for this test
         mockRegistry.getPackageInfo.mockReset()
-        
+
         mockedReaddir.mockResolvedValue(['invalid-package'] as any)
         mockedReadFile.mockResolvedValueOnce('invalid json')
 
@@ -281,7 +309,7 @@ describe('CommandGetOutdated', () => {
       it('should handle missing package.json files gracefully', async () => {
         // Reset registry mock for this test
         mockRegistry.getPackageInfo.mockReset()
-        
+
         mockedReaddir.mockResolvedValue(['missing-package'] as any)
         const error = new Error('ENOENT') as NodeJS.ErrnoException
         error.code = 'ENOENT'
@@ -333,15 +361,21 @@ describe('CommandGetOutdated', () => {
 
       beforeEach(() => {
         mockedReaddir.mockResolvedValue(['test-package-1'] as any)
-        mockedReadFile.mockResolvedValueOnce(JSON.stringify(mockInstalledPackage1))
-        mockRegistry.getPackageInfo.mockResolvedValueOnce(mockIncompatiblePackage)
+        mockedReadFile.mockResolvedValueOnce(
+          JSON.stringify(mockInstalledPackage1)
+        )
+        mockRegistry.getPackageInfo.mockResolvedValueOnce(
+          mockIncompatiblePackage
+        )
       })
 
       it('should not include packages with no compatible versions', async () => {
         const result = await command.run()
 
         expect(result).toEqual([])
-        expect(mockRegistry.getPackageInfo).toHaveBeenCalledWith('test-package-1')
+        expect(mockRegistry.getPackageInfo).toHaveBeenCalledWith(
+          'test-package-1'
+        )
       })
     })
   })
