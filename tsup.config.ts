@@ -10,6 +10,8 @@ export default defineConfig({
   external: Object.keys(pkg.dependencies || {}),
   target: 'es2023',
   minify: false,
-  sourcemap: false
+  sourcemap: false,
+  banner: {
+    js: `import { createRequire } from 'module';const require = createRequire(import.meta.url);`
+  }
 })
-
