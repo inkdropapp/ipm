@@ -18,7 +18,7 @@ export class Environment {
    * The path to the directory where Inkdrop stores its data, configuration, cache, and packages.
    */
   getInkdropDirectory() {
-    const pathToHome = this.options.appHomePath || process.env.INKDROP_HOME
+    const pathToHome = process.env.INKDROP_HOME || this.options.appHomePath
     return pathToHome != null
       ? pathToHome
       : path.join(this.getAppDataPath(), 'inkdrop')
@@ -47,20 +47,20 @@ export class Environment {
   }
 
   getInkdropPackagesUrl() {
-    const value = this.options.packagesUrl || process.env.INKDROP_PACKAGES_URL
+    const value = process.env.INKDROP_PACKAGES_URL || this.options.packagesUrl
     return value != null ? value : `${this.getInkdropApiUrl()}/packages`
   }
 
   getInkdropApiUrl() {
-    const value = this.options.apiUrl || process.env.INKDROP_API_URL
+    const value = process.env.INKDROP_API_URL || this.options.apiUrl
     return value != null ? value : 'https://api.inkdrop.app'
   }
 
   getInkdropAccessKey() {
     const accessKeyId =
-      this.options.accessKeyId || process.env.INKDROP_ACCESS_KEY_ID
+      process.env.INKDROP_ACCESS_KEY_ID || this.options.accessKeyId
     const secretAccessKey =
-      this.options.secretAccessKey || process.env.INKDROP_SECRET_ACCESS_KEY
+      process.env.INKDROP_SECRET_ACCESS_KEY || this.options.secretAccessKey
     return accessKeyId && secretAccessKey
       ? {
           accessKeyId,
