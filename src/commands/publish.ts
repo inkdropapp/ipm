@@ -43,9 +43,9 @@ export class CommandPublish {
     })
   }
 
-  async run(opts: { dryrun?: boolean }): Promise<boolean> {
-    const { dryrun = false } = opts
-    const repoDir = process.cwd()
+  async run(opts: { dryrun?: boolean; path?: string }): Promise<boolean> {
+    const { dryrun = false, path: packagePath } = opts
+    const repoDir = packagePath || process.cwd()
 
     try {
       const { default: pkg } = await import(
