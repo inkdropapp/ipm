@@ -17,7 +17,9 @@ export class IPM {
   installedInkdropVersion: string
 
   constructor(public options: IPMOptions) {
-    this.installedInkdropVersion = normalizeVersion(options.appVersion)
+    this.installedInkdropVersion = normalizeVersion(
+      process.env.INKDROP_VERSION || options.appVersion
+    )
     this.env = new Environment(options)
     this.registry = new IPMRegistry(this.env.getInkdropApiUrl())
   }
