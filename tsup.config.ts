@@ -8,7 +8,7 @@ export default defineConfig({
   clean: true,
   outDir: 'lib',
   external: Object.keys(pkg.dependencies || {}),
-  target: 'es2023',
+  target: 'esnext',
   minify: false,
   sourcemap: false,
   banner: {
