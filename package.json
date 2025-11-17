@@ -11,6 +11,7 @@
     "prepublishOnly": "npm run clean && npm run build",
     "test": "jest",
     "test:watch": "jest --watch",
+    "test:ci": "jest --testPathIgnorePatterns=\"command-publish.test.ts\"",
     "test:real-install": "jest tests/real-install.test.ts --testMatch=\"**/tests/real-install.test.ts\"",
     "test:real-outdated": "jest tests/real-get-outdated.test.ts --testMatch=\"**/tests/real-get-outdated.test.ts\"",
     "format": "prettier --write .",
