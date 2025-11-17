@@ -1,6 +1,6 @@
-import { jest } from '@jest/globals'
 import { access, rm } from 'fs/promises'
 import path from 'path'
+import { jest } from '@jest/globals'
 import { CommandUninstall } from '../src/commands/uninstall'
 import { Environment } from '../src/environment'
 import { logger } from '../src/logger'
@@ -25,7 +25,9 @@ describe('CommandUninstall', () => {
 
     // Create mock environment
     mockEnvironment = new Environment({ appVersion: '5.0.0' })
-    jest.spyOn(mockEnvironment, 'getInkdropDirectory').mockReturnValue(testInkdropDir)
+    jest
+      .spyOn(mockEnvironment, 'getInkdropDirectory')
+      .mockReturnValue(testInkdropDir)
 
     // Create command instance
     command = new CommandUninstall(mockEnvironment)
@@ -51,8 +53,12 @@ describe('CommandUninstall', () => {
           recursive: true,
           force: true
         })
-        expect(mockedLogger.info).toHaveBeenCalledWith(`Uninstalling ${testPackageName}...`)
-        expect(mockedLogger.info).toHaveBeenCalledWith(`Successfully uninstalled ${testPackageName}`)
+        expect(mockedLogger.info).toHaveBeenCalledWith(
+          `Uninstalling ${testPackageName}...`
+        )
+        expect(mockedLogger.info).toHaveBeenCalledWith(
+          `Successfully uninstalled ${testPackageName}`
+        )
         expect(mockedLogger.error).not.toHaveBeenCalled()
       })
 
@@ -105,14 +111,18 @@ describe('CommandUninstall', () => {
         const removeError = new Error('Permission denied')
         mockedRm.mockRejectedValueOnce(removeError)
 
-        await expect(command.run(testPackageName)).rejects.toThrow('Permission denied')
+        await expect(command.run(testPackageName)).rejects.toThrow(
+          'Permission denied'
+        )
 
         expect(mockedAccess).toHaveBeenCalledWith(testPackageDir)
         expect(mockedRm).toHaveBeenCalledWith(testPackageDir, {
           recursive: true,
           force: true
         })
-        expect(mockedLogger.info).toHaveBeenCalledWith(`Uninstalling ${testPackageName}...`)
+        expect(mockedLogger.info).toHaveBeenCalledWith(
+          `Uninstalling ${testPackageName}...`
+        )
         expect(mockedLogger.error).toHaveBeenCalledWith(
           `Failed to uninstall ${testPackageName}:`,
           removeError
@@ -145,8 +155,14 @@ describe('CommandUninstall', () => {
       it('should log uninstall start and success messages', async () => {
         await command.run(testPackageName)
 
-        expect(mockedLogger.info).toHaveBeenNthCalledWith(1, `Uninstalling ${testPackageName}...`)
-        expect(mockedLogger.info).toHaveBeenNthCalledWith(2, `Successfully uninstalled ${testPackageName}`)
+        expect(mockedLogger.info).toHaveBeenNthCalledWith(
+          1,
+          `Uninstalling ${testPackageName}...`
+        )
+        expect(mockedLogger.info).toHaveBeenNthCalledWith(
+          2,
+          `Successfully uninstalled ${testPackageName}`
+        )
       })
 
       it('should log error messages when operations fail', async () => {
@@ -185,7 +201,9 @@ describe('CommandUninstall', () => {
     it('should properly detect non-existing packages', async () => {
       // mockedAccess already configured to reject by default
 
-      await expect(command.run(testPackageName)).rejects.toThrow('is not installed')
+      await expect(command.run(testPackageName)).rejects.toThrow(
+        'is not installed'
+      )
 
       expect(mockedAccess).toHaveBeenCalledWith(testPackageDir)
       expect(mockedRm).not.toHaveBeenCalled()

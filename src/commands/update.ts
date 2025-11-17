@@ -1,10 +1,10 @@
 import { readFile } from 'fs/promises'
 import path from 'path'
 import semver from 'semver'
-import { CommandInstall } from './install'
 import { logger } from '../logger'
 import { PackageMetadata } from '../types'
 import { getLatestCompatibleVersion } from '../utils'
+import { CommandInstall } from './install'
 
 export class CommandUpdate extends CommandInstall {
   async run(name: string, version?: string): Promise<void> {
@@ -51,7 +51,9 @@ export class CommandUpdate extends CommandInstall {
 
     // Check if current version is newer than target (downgrade case)
     if (semver.gt(currentVersion, targetVersion)) {
-      logger.info(`Downgrading ${name} from ${currentVersion} to ${targetVersion}`)
+      logger.info(
+        `Downgrading ${name} from ${currentVersion} to ${targetVersion}`
+      )
     } else {
       logger.info(`Updating ${name} from ${currentVersion} to ${targetVersion}`)
     }

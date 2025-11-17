@@ -265,7 +265,10 @@ describe('CommandInstall', () => {
         }
       }
 
-      const result = getLatestCompatibleVersion(mockPackageInfo, testInkdropVersion)
+      const result = getLatestCompatibleVersion(
+        mockPackageInfo,
+        testInkdropVersion
+      )
       expect(result).toBeNull()
     })
   })

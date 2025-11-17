@@ -12,12 +12,14 @@ export class CommandGetInstalled {
     return await this.getInstalledPackages(packagesDir)
   }
 
-  private async getInstalledPackages(packagesDir: string): Promise<PackageMetadata[]> {
+  private async getInstalledPackages(
+    packagesDir: string
+  ): Promise<PackageMetadata[]> {
     const installedPackages: PackageMetadata[] = []
 
     try {
       const packageNames = await readdir(packagesDir)
-      
+
       for (const packageName of packageNames) {
         const packageDir = path.join(packagesDir, packageName)
         const packageJsonPath = path.join(packageDir, 'package.json')
@@ -27,7 +29,10 @@ export class CommandGetInstalled {
           const packageJson: PackageMetadata = JSON.parse(packageJsonContent)
           installedPackages.push(packageJson)
         } catch (error) {
-          logger.warn(`Warning: Could not read package.json for ${packageName}:`, error)
+          logger.warn(
+            `Warning: Could not read package.json for ${packageName}:`,
+            error
+          )
         }
       }
     } catch (error) {

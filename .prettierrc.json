@@ -6,9 +6,7 @@
   "semi": false,
   "tabWidth": 2,
   "trailingComma": "none",
-  "plugins": [
-    "@ianvs/prettier-plugin-sort-imports"
-  ],
+  "plugins": ["@ianvs/prettier-plugin-sort-imports"],
   "importOrder": [
     "<BUILTIN_MODULES>",
     "^react",

@@ -4,7 +4,7 @@ import { CommandUpdate } from '../src/commands/update'
 import { Environment } from '../src/environment'
 import { logger } from '../src/logger'
 import { IPMRegistry } from '../src/registry'
-import { PackageInfo, PackageMetadata } from '../src/types'
+import { PackageInfo } from '../src/types'
 
 jest.mock('fs/promises')
 jest.mock('../src/logger')
@@ -42,7 +42,8 @@ const mockPackageInfo: PackageInfo = {
         inkdrop: '^5.0.0'
       },
       dist: {
-        tarball: 'https://registry.test.com/test-package/-/test-package-1.0.0.tgz'
+        tarball:
+          'https://registry.test.com/test-package/-/test-package-1.0.0.tgz'
       }
     },
     '1.5.0': {
@@ -55,7 +56,8 @@ const mockPackageInfo: PackageInfo = {
         inkdrop: '^5.0.0'
       },
       dist: {
-        tarball: 'https://registry.test.com/test-package/-/test-package-1.5.0.tgz'
+        tarball:
+          'https://registry.test.com/test-package/-/test-package-1.5.0.tgz'
       }
     },
     '2.0.0': {
@@ -68,7 +70,8 @@ const mockPackageInfo: PackageInfo = {
         inkdrop: '^5.0.0'
       },
       dist: {
-        tarball: 'https://registry.test.com/test-package/-/test-package-2.0.0.tgz'
+        tarball:
+          'https://registry.test.com/test-package/-/test-package-2.0.0.tgz'
       }
     }
   }
@@ -241,7 +244,8 @@ describe('CommandUpdate', () => {
               repository: 'test/test-package',
               engines: { inkdrop: '^6.0.0' }, // Incompatible with test version 5.0.0
               dist: {
-                tarball: 'https://registry.test.com/test-package/-/test-package-1.0.0.tgz'
+                tarball:
+                  'https://registry.test.com/test-package/-/test-package-1.0.0.tgz'
               }
             }
           }
@@ -312,4 +316,3 @@ describe('CommandUpdate', () => {
     })
   })
 })
-
