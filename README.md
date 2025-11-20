@@ -82,6 +82,21 @@ Publish a package to the registry. It will use `cwd` to locate the package to pu
 await ipm.publish({ dryrun: true, path: './my-package' })
 ```
 
+### `unpublish(name: string, opts?: { version?: string })`
+
+Unpublish a package or specific version from the registry.
+
+- `name`: Name of the package to unpublish
+- `opts.version`: Optional specific version to unpublish. If not provided, unpublishes the entire package.
+
+```ts
+// Unpublish entire package
+await ipm.unpublish('package-name')
+
+// Unpublish specific version
+await ipm.unpublish('package-name', { version: '1.0.0' })
+```
+
 ### `registry.getPackageInfo(name: string): Promise<PackageInfo>`
 
 Get a package from the registry:

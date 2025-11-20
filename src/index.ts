@@ -3,6 +3,7 @@ import { CommandGetOutdated } from './commands/get-outdated'
 import { CommandInstall } from './commands/install'
 import { CommandPublish } from './commands/publish'
 import { CommandUninstall } from './commands/uninstall'
+import { CommandUnpublish } from './commands/unpublish'
 import { CommandUpdate } from './commands/update'
 import { Environment } from './environment'
 import { IPMRegistry } from './registry'
@@ -66,5 +67,13 @@ export class IPM {
   ): Promise<boolean> {
     const command = new CommandPublish(this.env, this.registry)
     return await command.run(opts)
+  }
+
+  async unpublish(
+    name: string,
+    opts: { version?: string } = {}
+  ): Promise<boolean> {
+    const command = new CommandUnpublish(this.env, this.registry)
+    return await command.run(name, opts)
   }
 }
