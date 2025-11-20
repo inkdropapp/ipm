@@ -166,16 +166,23 @@ export class CommandPublish {
         file: tarballPath,
         cwd: repoDir,
         filter: path => {
-          // Check if path matches any exclude pattern
+          const normalizedPath = path.replace(/\\/g, '/')
+
           for (const pattern of excludePatterns) {
             if (pattern.includes('*')) {
-              // Simple glob pattern matching
               const regex = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$')
-              if (regex.test(path)) {
+              if (regex.test(normalizedPath)) {
                 return false
               }
-            } else if (path === pattern || path.startsWith(`${pattern}/`)) {
-              return false
+            } else {
+              if (
+                normalizedPath === pattern ||
+                normalizedPath === `./${pattern}` ||
+                normalizedPath.startsWith(`${pattern}/`) ||
+                normalizedPath.startsWith(`./${pattern}/`)
+              ) {
+                return false
+              }
             }
           }
           return true
@@ -250,9 +257,8 @@ export class CommandPublish {
       return response.data
     } catch (error: any) {
       if (isAxiosError(error) && error.response) {
-        throw new Error(
-          `Upload failed: ${error.response.status} - ${JSON.stringify(error.response.data)}`
-        )
+        const { message = '' } = error.response.data || {}
+        throw new Error(`Upload failed: ${error.response.status} - ${message}`)
       }
       throw error
     }
