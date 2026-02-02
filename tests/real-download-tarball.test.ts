@@ -1,9 +1,13 @@
-import { IPMRegistry } from '../src/registry'
-import { access, unlink } from 'fs/promises'
+import { access, mkdir, unlink } from 'fs/promises'
 import { join } from 'path'
+import { IPMRegistry } from '../src/registry'
 
 describe('Real Tarball Download Test', () => {
   const registry = new IPMRegistry('https://api.inkdrop.app')
+
+  beforeAll(async () => {
+    await mkdir('./tmp', { recursive: true })
+  })
 
   it('should get package info for embed', async () => {
     const packageInfo = await registry.getPackageInfo('embed')
