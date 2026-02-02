@@ -1,5 +1,6 @@
 import { writeFile } from 'fs/promises'
 import axios from 'axios'
+import { logger } from './logger'
 import type {
   PackageInfo,
   PackageSortOptions,
@@ -43,13 +44,20 @@ export class IPMRegistry {
     version: string,
     destPath: string
   ): Promise<void> {
-    const data = await this.apiClient
-      .get(`${name}/versions/${version}/tarball`, {
-        responseType: 'arraybuffer'
-      })
-      .then(res => res.data)
+    const versionInfo = await this.getPackageVersionInfo(name, version)
+    const tarballUrl = versionInfo?.dist?.tarball
+    logger.debug(`Downloading tarball from ${tarballUrl}...`)
+    if (tarballUrl) {
+      const data = await this.apiClient
+        .get(tarballUrl, {
+          responseType: 'arraybuffer'
+        })
+        .then(res => res.data)
 
-    await writeFile(destPath, Buffer.from(data))
+      await writeFile(destPath, Buffer.from(data))
+    } else {
+      throw new Error(`Tarball URL not found for ${name}@${version}`)
+    }
   }
 
   /**
