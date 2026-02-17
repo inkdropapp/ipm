@@ -80,7 +80,9 @@ export class CommandUnpublish {
       }
     } catch (error: any) {
       if (isAxiosError(error) && error.response?.status === 404) {
-        throw new Error(`Package ${name} does not exist in the registry`)
+        throw new Error(`Package ${name} does not exist in the registry`, {
+          cause: error
+        })
       }
       throw error
     }
@@ -93,7 +95,8 @@ export class CommandUnpublish {
     } catch (error: any) {
       if (isAxiosError(error) && error.response) {
         throw new Error(
-          `Failed to unpublish package: ${error.response.status} - ${JSON.stringify(error.response.data)}`
+          `Failed to unpublish package: ${error.response.status} - ${JSON.stringify(error.response.data)}`,
+          { cause: error }
         )
       }
       throw error
@@ -107,7 +110,8 @@ export class CommandUnpublish {
     } catch (error: any) {
       if (isAxiosError(error) && error.response) {
         throw new Error(
-          `Failed to unpublish version: ${error.response.status} - ${JSON.stringify(error.response.data)}`
+          `Failed to unpublish version: ${error.response.status} - ${JSON.stringify(error.response.data)}`,
+          { cause: error }
         )
       }
       throw error

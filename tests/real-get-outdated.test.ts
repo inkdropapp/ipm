@@ -34,7 +34,7 @@ describe('Real Get Outdated Test', () => {
     const packageDir = path.default.join('./tmp', 'packages', 'math')
     const packageJsonPath = path.default.join(packageDir, 'package.json')
 
-    let currentVersion = ''
+    let currentVersion: string
 
     try {
       await fs.access(packageJsonPath)

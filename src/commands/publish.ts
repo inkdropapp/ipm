@@ -127,7 +127,9 @@ export class CommandPublish {
       logger.debug('Package validation passed')
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-        throw new Error('package.json not found in the current directory')
+        throw new Error('package.json not found in the current directory', {
+          cause: error
+        })
       }
       throw error
     }
@@ -258,7 +260,12 @@ export class CommandPublish {
     } catch (error: any) {
       if (isAxiosError(error) && error.response) {
         const { message = '' } = error.response.data || {}
-        throw new Error(`Upload failed: ${error.response.status} - ${message}`)
+        throw new Error(
+          `Upload failed: ${error.response.status} - ${message}`,
+          {
+            cause: error
+          }
+        )
       }
       throw error
     }

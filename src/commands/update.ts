@@ -13,7 +13,7 @@ export class CommandUpdate extends CommandInstall {
     const packageJsonPath = path.join(packageDir, 'package.json')
 
     // Check if package is currently installed
-    let currentVersion: string | null = null
+    let currentVersion: string | null
     try {
       const packageJsonContent = await readFile(packageJsonPath, 'utf8')
       const packageJson: PackageMetadata = JSON.parse(packageJsonContent)
