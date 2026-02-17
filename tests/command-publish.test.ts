@@ -15,7 +15,7 @@ describe('CommandPublish', () => {
     environment = new Environment({
       appVersion: '6.0.0'
     })
-    registry = new IPMRegistry(environment.getInkdropApiUrl())
+    registry = new IPMRegistry('6.0.0', environment.getInkdropApiUrl())
     command = new CommandPublish(environment, registry)
   })
 

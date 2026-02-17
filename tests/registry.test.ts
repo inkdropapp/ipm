@@ -18,7 +18,7 @@ describe('IPMRegistry', () => {
       get: jest.fn()
     }
     mockedAxios.create.mockReturnValue(mockAxiosInstance)
-    registry = new IPMRegistry('https://api.inkdrop.app')
+    registry = new IPMRegistry('5.9.0', 'https://api.inkdrop.app')
   })
 
   afterEach(() => {
@@ -28,7 +28,10 @@ describe('IPMRegistry', () => {
   describe('constructor', () => {
     it('should create axios instance with correct baseURL', () => {
       expect(mockedAxios.create).toHaveBeenCalledWith({
-        baseURL: 'https://api.inkdrop.app/v1/packages'
+        baseURL: 'https://api.inkdrop.app/v1/packages',
+        headers: {
+          'X-CLIENT-VERSION': '5.9.0'
+        }
       })
     })
   })

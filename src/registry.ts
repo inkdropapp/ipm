@@ -10,10 +10,15 @@ import type { AxiosInstance } from 'axios'
 
 export class IPMRegistry {
   apiClient: AxiosInstance
+  installedInkdropVersion: string
 
-  constructor(apiBaseUrl: string) {
+  constructor(installedInkdropVersion: string, apiBaseUrl: string) {
+    this.installedInkdropVersion = installedInkdropVersion
     this.apiClient = axios.create({
-      baseURL: `${apiBaseUrl}/v1/packages`
+      baseURL: `${apiBaseUrl}/v1/packages`,
+      headers: {
+        'X-CLIENT-VERSION': this.installedInkdropVersion
+      }
     })
   }
 

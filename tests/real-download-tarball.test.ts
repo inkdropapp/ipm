@@ -3,7 +3,7 @@ import { join } from 'path'
 import { IPMRegistry } from '../src/registry'
 
 describe('Real Tarball Download Test', () => {
-  const registry = new IPMRegistry('https://api.inkdrop.app')
+  const registry = new IPMRegistry('5.9.0', 'https://api.inkdrop.app')
 
   beforeAll(async () => {
     await mkdir('./tmp', { recursive: true })

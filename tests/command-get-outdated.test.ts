@@ -136,6 +136,7 @@ describe('CommandGetOutdated', () => {
 
     // Create mock registry
     mockRegistry = new IPMRegistry(
+      testInkdropVersion,
       'http://test-api.inkdrop.app'
     ) as jest.Mocked<IPMRegistry>
 

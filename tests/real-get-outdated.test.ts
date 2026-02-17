@@ -10,7 +10,7 @@ describe('Real Get Outdated Test', () => {
       appVersion: '5.9.0',
       appHomePath: './tmp' // Use ./tmp directory
     })
-    const realRegistry = new IPMRegistry('https://api.inkdrop.app')
+    const realRegistry = new IPMRegistry('5.9.0', 'https://api.inkdrop.app')
 
     console.log('🔍 Starting real getOutdated test with math package...')
 
@@ -111,7 +111,7 @@ describe('Real Get Outdated Test', () => {
       appVersion: '5.9.0',
       appHomePath: './tmp-empty-test' // Use a directory that doesn't exist
     })
-    const realRegistry = new IPMRegistry('https://api.inkdrop.app')
+    const realRegistry = new IPMRegistry('5.9.0', 'https://api.inkdrop.app')
 
     const realCommandGetOutdated = new CommandGetOutdated(
       '5.9.0',
@@ -135,7 +135,7 @@ describe('Real Get Outdated Test', () => {
       appVersion: '5.9.0',
       appHomePath: './tmp-outdated-test'
     })
-    const realRegistry = new IPMRegistry('https://api.inkdrop.app')
+    const realRegistry = new IPMRegistry('5.9.0', 'https://api.inkdrop.app')
 
     const realCommandGetOutdated = new CommandGetOutdated(
       '5.9.0',

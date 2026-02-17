@@ -102,7 +102,10 @@ describe('CommandUpdate', () => {
       .mockReturnValue('/test/cache')
 
     // Create mock registry
-    mockRegistry = new IPMRegistry('test-url') as jest.Mocked<IPMRegistry>
+    mockRegistry = new IPMRegistry(
+      testInkdropVersion,
+      'test-url'
+    ) as jest.Mocked<IPMRegistry>
 
     // Create command instance
     command = new CommandUpdate(

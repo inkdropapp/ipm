@@ -22,7 +22,10 @@ export class IPM {
       process.env.INKDROP_VERSION || options.appVersion
     )
     this.env = new Environment(options)
-    this.registry = new IPMRegistry(this.env.getInkdropApiUrl())
+    this.registry = new IPMRegistry(
+      this.installedInkdropVersion,
+      this.env.getInkdropApiUrl()
+    )
   }
 
   async install(name: string, version?: string): Promise<void> {

@@ -9,7 +9,7 @@ describe('Real Installation Test', () => {
       appVersion: '5.9.0',
       appHomePath: './tmp' // Install to ./tmp directory
     })
-    const realRegistry = new IPMRegistry('https://api.inkdrop.app')
+    const realRegistry = new IPMRegistry('5.9.0', 'https://api.inkdrop.app')
     const realCommandInstall = new CommandInstall(
       '5.9.0',
       realEnvironment,
