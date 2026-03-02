@@ -65,6 +65,7 @@ export class CommandInstall {
       )
 
       if (await this.pathExists(packageDir)) {
+        logger.debug('Removing existing package directory at', packageDir)
         await rm(packageDir, { recursive: true, force: true })
       }
       await mkdir(packageDir, { recursive: true })
@@ -73,6 +74,7 @@ export class CommandInstall {
 
       await this.installDependencies(packageDir)
 
+      logger.debug(`Cleaning up temporary files...`, tarballPath)
       await rm(tarballPath, { force: true })
 
       logger.info(`Successfully installed ${pkg.name}@${pkg.version}`)
@@ -96,6 +98,7 @@ export class CommandInstall {
     tarballPath: string,
     extractDir: string
   ): Promise<void> {
+    logger.debug(`Extracting tarball ${tarballPath} to ${extractDir}...`)
     await extract({
       file: tarballPath,
       cwd: extractDir,
@@ -105,6 +108,7 @@ export class CommandInstall {
 
   private async installDependencies(packageDir: string): Promise<void> {
     const packageJsonPath = path.join(packageDir, 'package.json')
+    logger.debug('Installing dependencies for package at', packageJsonPath)
 
     try {
       const packageJsonContent = await readFile(packageJsonPath, 'utf8')

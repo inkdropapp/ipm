@@ -51,7 +51,7 @@ export class IPMRegistry {
   ): Promise<void> {
     const versionInfo = await this.getPackageVersionInfo(name, version)
     const tarballUrl = versionInfo?.dist?.tarball
-    logger.debug(`Downloading tarball from ${tarballUrl}...`)
+    logger.debug(`Downloading tarball from ${tarballUrl} to ${destPath}...`)
     if (tarballUrl) {
       const data = await this.apiClient
         .get(tarballUrl, {
