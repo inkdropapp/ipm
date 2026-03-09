@@ -1,7 +1,6 @@
-import { rm } from 'fs/promises'
+import { readFile, rm } from 'fs/promises'
 import * as fs from 'fs/promises'
 import path from 'path'
-import { pathToFileURL } from 'url'
 import axios, { isAxiosError } from 'axios'
 import FormData from 'form-data'
 import * as tar from 'tar'
@@ -49,9 +48,8 @@ export class CommandPublish {
     const repoDir = packagePath || process.cwd()
 
     try {
-      const { default: pkg } = await import(
-        pathToFileURL(path.join(repoDir, 'package.json')).href,
-        { with: { type: 'json' } }
+      const pkg = JSON.parse(
+        await readFile(path.join(repoDir, 'package.json'), 'utf-8')
       )
       const repository = this.getRepositoryId(pkg)
 
