@@ -1,4 +1,3 @@
-import { rm } from 'fs/promises'
 import * as fs from 'fs/promises'
 import path from 'path'
 import axios, { isAxiosError } from 'axios'
@@ -48,9 +47,8 @@ export class CommandPublish {
     const repoDir = packagePath || process.cwd()
 
     try {
-      const { default: pkg } = await import(
-        path.join(repoDir, 'package.json'),
-        { with: { type: 'json' } }
+      const pkg = JSON.parse(
+        await fs.readFile(path.join(repoDir, 'package.json'), 'utf-8')
       )
       const repository = this.getRepositoryId(pkg)
 
@@ -66,7 +64,7 @@ export class CommandPublish {
       await this.uploadTarball(pkg, filePath, repository!, dryrun)
 
       // Step 4 - Clean up the created tarball file
-      await rm(filePath, { force: true })
+      await fs.rm(filePath, { force: true })
       logger.info('Cleaned up temporary tarball')
 
       logger.info(`Successfully published ${pkg.name}@${pkg.version}`)
@@ -197,7 +195,7 @@ export class CommandPublish {
     const stats = await fs.stat(tarballPath)
 
     if (stats.size > PACKAGE_MAX_SIZE) {
-      await rm(tarballPath, { force: true })
+      await fs.rm(tarballPath, { force: true })
       throw new Error(
         `Package tarball size (${(stats.size / 1024 / 1024).toFixed(2)}MB) exceeds the 30MB limit`
       )
