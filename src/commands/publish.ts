@@ -233,10 +233,10 @@ export class CommandPublish {
       filename: path.basename(filePath),
       contentType: 'application/gzip'
     })
+    form.append('dryrun', dryrun ? 'true' : 'false')
 
     if (isNewPackage) {
       form.append('repository', repositoryId)
-      form.append('dryrun', dryrun ? 'true' : 'false')
     }
 
     // Determine the endpoint
