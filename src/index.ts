@@ -1,6 +1,7 @@
 import { CommandGetInstalled } from './commands/get-installed'
 import { CommandGetOutdated } from './commands/get-outdated'
 import { CommandInstall } from './commands/install'
+import { CommandLink, LinkOptions } from './commands/link'
 import { CommandPublish } from './commands/publish'
 import { CommandUninstall } from './commands/uninstall'
 import { CommandUnpublish } from './commands/unpublish'
@@ -11,6 +12,7 @@ import { IPMOptions, OutdatedPackageInfo, PackageMetadata } from './types'
 import { normalizeVersion } from './utils'
 
 export * from './types'
+export type { LinkOptions } from './commands/link'
 
 export class IPM {
   env: Environment
@@ -44,6 +46,11 @@ export class IPM {
       this.registry
     )
     await command.run(name, version)
+  }
+
+  async link(packagePath: string, opts: LinkOptions = {}): Promise<string> {
+    const command = new CommandLink(this.env)
+    return await command.run(packagePath, opts)
   }
 
   async uninstall(name: string): Promise<boolean> {
