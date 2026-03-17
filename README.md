@@ -63,6 +63,27 @@ Update package:
 const result = await ipm.update('package-name')
 ````
 
+### `link(packagePath: string, opts?: { dev?: boolean; name?: string }): Promise<string>`
+
+Create a symlink for a local package in the Inkdrop packages directory. Useful for plugin development.
+
+- `packagePath`: Path to the local package directory
+- `opts.dev`: If true, links to `dev/packages` instead of `packages`
+- `opts.name`: Override the package name (defaults to `name` from `package.json`, or the directory basename)
+
+Returns the created symlink path.
+
+```ts
+// Link to packages/
+await ipm.link('./my-plugin')
+
+// Link to dev/packages/ for development
+await ipm.link('./my-plugin', { dev: true })
+
+// Link with a custom name
+await ipm.link('./my-plugin', { dev: true, name: 'custom-name' })
+```
+
 ### `uninstall(name: string)`
 
 Uninstall package:
