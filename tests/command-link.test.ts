@@ -15,6 +15,8 @@ const mockedMkdir = mkdir as jest.MockedFunction<typeof mkdir>
 const mockedSymlink = symlink as jest.MockedFunction<typeof symlink>
 const mockedLogger = logger as jest.Mocked<typeof logger>
 
+const expectedSymlinkType = process.platform === 'win32' ? 'junction' : 'dir'
+
 describe('CommandLink', () => {
   let command: CommandLink
   let mockEnvironment: Environment
@@ -45,6 +47,7 @@ describe('CommandLink', () => {
     describe('package name resolution', () => {
       it('should read name from package.json', async () => {
         const sourcePath = '/projects/my-plugin'
+        const resolvedSource = path.resolve(sourcePath)
         const expectedTarget = path.join(
           testInkdropDir,
           'packages',
@@ -55,7 +58,7 @@ describe('CommandLink', () => {
 
         expect(result).toBe(expectedTarget)
         expect(mockedReadFile).toHaveBeenCalledWith(
-          path.join(sourcePath, 'package.json'),
+          path.join(resolvedSource, 'package.json'),
           'utf-8'
         )
       })
@@ -122,6 +125,7 @@ describe('CommandLink', () => {
     describe('target directory', () => {
       it('should link to packages/ by default', async () => {
         const sourcePath = '/projects/my-plugin'
+        const resolvedSource = path.resolve(sourcePath)
         const expectedTarget = path.join(
           testInkdropDir,
           'packages',
@@ -132,14 +136,15 @@ describe('CommandLink', () => {
 
         expect(result).toBe(expectedTarget)
         expect(mockedSymlink).toHaveBeenCalledWith(
-          sourcePath,
+          resolvedSource,
           expectedTarget,
-          'dir'
+          expectedSymlinkType
         )
       })
 
       it('should link to dev/packages/ when dev option is true', async () => {
         const sourcePath = '/projects/my-plugin'
+        const resolvedSource = path.resolve(sourcePath)
         const expectedTarget = path.join(
           testInkdropDir,
           'dev',
@@ -151,9 +156,9 @@ describe('CommandLink', () => {
 
         expect(result).toBe(expectedTarget)
         expect(mockedSymlink).toHaveBeenCalledWith(
-          sourcePath,
+          resolvedSource,
           expectedTarget,
-          'dir'
+          expectedSymlinkType
         )
       })
     })
@@ -204,7 +209,7 @@ describe('CommandLink', () => {
         expect(mockedSymlink).toHaveBeenCalledWith(
           resolvedPath,
           expect.any(String),
-          'dir'
+          expectedSymlinkType
         )
       })
     })
@@ -212,6 +217,7 @@ describe('CommandLink', () => {
     describe('logging', () => {
       it('should log the created link', async () => {
         const sourcePath = '/projects/my-plugin'
+        const resolvedSource = path.resolve(sourcePath)
         const expectedTarget = path.join(
           testInkdropDir,
           'packages',
@@ -221,7 +227,7 @@ describe('CommandLink', () => {
         await command.run(sourcePath)
 
         expect(mockedLogger.info).toHaveBeenCalledWith(
-          `${expectedTarget} -> ${sourcePath}`
+          `${expectedTarget} -> ${resolvedSource}`
         )
       })
     })
@@ -260,9 +266,10 @@ describe('CommandLink', () => {
       it('should throw when source path does not exist', async () => {
         mockedAccess.mockRejectedValueOnce(new Error('ENOENT'))
         const sourcePath = '/nonexistent/path'
+        const resolvedSource = path.resolve(sourcePath)
 
         await expect(command.run(sourcePath)).rejects.toThrow(
-          `Package directory does not exist: ${sourcePath}`
+          `Package directory does not exist: ${resolvedSource}`
         )
 
         expect(mockedSymlink).not.toHaveBeenCalled()
@@ -272,6 +279,7 @@ describe('CommandLink', () => {
         const symlinkError = new Error('Permission denied')
         mockedSymlink.mockRejectedValueOnce(symlinkError)
         const sourcePath = '/projects/my-plugin'
+        const resolvedSource = path.resolve(sourcePath)
         const expectedTarget = path.join(
           testInkdropDir,
           'packages',
@@ -279,7 +287,7 @@ describe('CommandLink', () => {
         )
 
         await expect(command.run(sourcePath)).rejects.toThrow(
-          `Linking ${expectedTarget} to ${sourcePath} failed: Permission denied`
+          `Linking ${expectedTarget} to ${resolvedSource} failed: Permission denied`
         )
 
         expect(mockedLogger.error).toHaveBeenCalled()
