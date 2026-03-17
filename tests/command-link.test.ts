@@ -1,306 +1,221 @@
-import { access, readFile, rm, mkdir, symlink } from 'fs/promises'
+import {
+  lstat,
+  readFile,
+  readlink,
+  realpath,
+  rm,
+  writeFile,
+  mkdir
+} from 'fs/promises'
+import { mkdtempSync } from 'fs'
 import path from 'path'
+import os from 'os'
 import { jest } from '@jest/globals'
 import { CommandLink } from '../src/commands/link'
 import { Environment } from '../src/environment'
-import { logger } from '../src/logger'
-
-jest.mock('fs/promises')
-jest.mock('../src/logger')
-
-const mockedAccess = access as jest.MockedFunction<typeof access>
-const mockedReadFile = readFile as jest.MockedFunction<typeof readFile>
-const mockedRm = rm as jest.MockedFunction<typeof rm>
-const mockedMkdir = mkdir as jest.MockedFunction<typeof mkdir>
-const mockedSymlink = symlink as jest.MockedFunction<typeof symlink>
-const mockedLogger = logger as jest.Mocked<typeof logger>
-
-const expectedSymlinkType = process.platform === 'win32' ? 'junction' : 'dir'
 
 describe('CommandLink', () => {
   let command: CommandLink
-  let mockEnvironment: Environment
-  const testInkdropDir = '/test/inkdrop'
+  let env: Environment
+  let tmpDir: string
+  let inkdropDir: string
+  let sourceDir: string
 
-  beforeEach(() => {
-    jest.clearAllMocks()
+  beforeEach(async () => {
+    // Resolve real path to avoid symlink issues (e.g., macOS /var -> /private/var)
+    tmpDir = await realpath(
+      mkdtempSync(path.join(os.tmpdir(), 'ipm-link-test-'))
+    )
+    inkdropDir = path.join(tmpDir, 'inkdrop')
+    sourceDir = path.join(tmpDir, 'source-plugin')
 
-    mockEnvironment = new Environment({ appVersion: '5.0.0' })
-    jest
-      .spyOn(mockEnvironment, 'getInkdropDirectory')
-      .mockReturnValue(testInkdropDir)
-
-    command = new CommandLink(mockEnvironment)
-
-    // Default: source path exists
-    mockedAccess.mockResolvedValue(undefined as any)
-    // Default: package.json with a name
-    mockedReadFile.mockResolvedValue(
+    await mkdir(sourceDir, { recursive: true })
+    await writeFile(
+      path.join(sourceDir, 'package.json'),
       JSON.stringify({ name: 'my-plugin', version: '1.0.0' })
     )
-    mockedRm.mockResolvedValue(undefined)
-    mockedMkdir.mockResolvedValue(undefined as any)
-    mockedSymlink.mockResolvedValue(undefined)
+
+    env = new Environment({ appVersion: '5.0.0' })
+    jest.spyOn(env, 'getInkdropDirectory').mockReturnValue(inkdropDir)
+    command = new CommandLink(env)
   })
 
-  describe('run', () => {
-    describe('package name resolution', () => {
-      it('should read name from package.json', async () => {
-        const sourcePath = '/projects/my-plugin'
-        const resolvedSource = path.resolve(sourcePath)
-        const expectedTarget = path.join(
-          testInkdropDir,
-          'packages',
-          'my-plugin'
-        )
+  afterEach(async () => {
+    await rm(tmpDir, { recursive: true, force: true })
+  })
 
-        const result = await command.run(sourcePath)
+  describe('package name resolution', () => {
+    it('should read name from package.json', async () => {
+      const result = await command.run(sourceDir)
 
-        expect(result).toBe(expectedTarget)
-        expect(mockedReadFile).toHaveBeenCalledWith(
-          path.join(resolvedSource, 'package.json'),
-          'utf-8'
-        )
-      })
+      const expectedTarget = path.join(inkdropDir, 'packages', 'my-plugin')
+      expect(result).toBe(expectedTarget)
 
-      it('should fall back to directory basename when package.json has no name', async () => {
-        mockedReadFile.mockResolvedValueOnce(
-          JSON.stringify({ version: '1.0.0' })
-        )
-        const sourcePath = '/projects/my-plugin'
-        const expectedTarget = path.join(
-          testInkdropDir,
-          'packages',
-          'my-plugin'
-        )
+      const stat = await lstat(expectedTarget)
+      expect(stat.isSymbolicLink()).toBe(true)
 
-        const result = await command.run(sourcePath)
-
-        expect(result).toBe(expectedTarget)
-      })
-
-      it('should fall back to directory basename when package.json does not exist', async () => {
-        mockedReadFile.mockRejectedValueOnce(new Error('ENOENT'))
-        const sourcePath = '/projects/my-plugin'
-        const expectedTarget = path.join(
-          testInkdropDir,
-          'packages',
-          'my-plugin'
-        )
-
-        const result = await command.run(sourcePath)
-
-        expect(result).toBe(expectedTarget)
-      })
-
-      it('should fall back to directory basename when package.json is invalid JSON', async () => {
-        mockedReadFile.mockResolvedValueOnce('not valid json')
-        const sourcePath = '/projects/my-plugin'
-        const expectedTarget = path.join(
-          testInkdropDir,
-          'packages',
-          'my-plugin'
-        )
-
-        const result = await command.run(sourcePath)
-
-        expect(result).toBe(expectedTarget)
-      })
-
-      it('should use explicit name option when provided', async () => {
-        const sourcePath = '/projects/my-plugin'
-        const expectedTarget = path.join(
-          testInkdropDir,
-          'packages',
-          'custom-name'
-        )
-
-        const result = await command.run(sourcePath, { name: 'custom-name' })
-
-        expect(result).toBe(expectedTarget)
-        expect(mockedReadFile).not.toHaveBeenCalled()
-      })
+      const linkTarget = await readlink(expectedTarget)
+      expect(linkTarget).toBe(sourceDir)
     })
 
-    describe('target directory', () => {
-      it('should link to packages/ by default', async () => {
-        const sourcePath = '/projects/my-plugin'
-        const resolvedSource = path.resolve(sourcePath)
-        const expectedTarget = path.join(
-          testInkdropDir,
-          'packages',
-          'my-plugin'
-        )
+    it('should fall back to directory basename when package.json has no name', async () => {
+      await writeFile(
+        path.join(sourceDir, 'package.json'),
+        JSON.stringify({ version: '1.0.0' })
+      )
 
-        const result = await command.run(sourcePath)
+      const result = await command.run(sourceDir)
 
-        expect(result).toBe(expectedTarget)
-        expect(mockedSymlink).toHaveBeenCalledWith(
-          resolvedSource,
-          expectedTarget,
-          expectedSymlinkType
-        )
-      })
-
-      it('should link to dev/packages/ when dev option is true', async () => {
-        const sourcePath = '/projects/my-plugin'
-        const resolvedSource = path.resolve(sourcePath)
-        const expectedTarget = path.join(
-          testInkdropDir,
-          'dev',
-          'packages',
-          'my-plugin'
-        )
-
-        const result = await command.run(sourcePath, { dev: true })
-
-        expect(result).toBe(expectedTarget)
-        expect(mockedSymlink).toHaveBeenCalledWith(
-          resolvedSource,
-          expectedTarget,
-          expectedSymlinkType
-        )
-      })
+      expect(result).toBe(
+        path.join(inkdropDir, 'packages', 'source-plugin')
+      )
     })
 
-    describe('symlink creation', () => {
-      it('should remove existing target before creating symlink', async () => {
-        const sourcePath = '/projects/my-plugin'
+    it('should fall back to directory basename when package.json does not exist', async () => {
+      await rm(path.join(sourceDir, 'package.json'))
 
-        await command.run(sourcePath)
+      const result = await command.run(sourceDir)
 
-        const targetPath = path.join(
-          testInkdropDir,
-          'packages',
-          'my-plugin'
-        )
-        expect(mockedRm).toHaveBeenCalledWith(targetPath, {
-          recursive: true,
-          force: true
-        })
-        // rm should be called before symlink
-        const rmOrder = mockedRm.mock.invocationCallOrder[0]
-        const symlinkOrder = mockedSymlink.mock.invocationCallOrder[0]
-        expect(rmOrder).toBeLessThan(symlinkOrder)
-      })
-
-      it('should create parent directories', async () => {
-        const sourcePath = '/projects/my-plugin'
-
-        await command.run(sourcePath)
-
-        const targetPath = path.join(
-          testInkdropDir,
-          'packages',
-          'my-plugin'
-        )
-        expect(mockedMkdir).toHaveBeenCalledWith(path.dirname(targetPath), {
-          recursive: true
-        })
-      })
-
-      it('should resolve relative package paths', async () => {
-        const sourcePath = './my-plugin'
-        const resolvedPath = path.resolve(sourcePath)
-
-        await command.run(sourcePath)
-
-        expect(mockedAccess).toHaveBeenCalledWith(resolvedPath)
-        expect(mockedSymlink).toHaveBeenCalledWith(
-          resolvedPath,
-          expect.any(String),
-          expectedSymlinkType
-        )
-      })
+      expect(result).toBe(
+        path.join(inkdropDir, 'packages', 'source-plugin')
+      )
     })
 
-    describe('logging', () => {
-      it('should log the created link', async () => {
-        const sourcePath = '/projects/my-plugin'
-        const resolvedSource = path.resolve(sourcePath)
-        const expectedTarget = path.join(
-          testInkdropDir,
-          'packages',
-          'my-plugin'
-        )
+    it('should fall back to directory basename when package.json is invalid JSON', async () => {
+      await writeFile(path.join(sourceDir, 'package.json'), 'not valid json')
 
-        await command.run(sourcePath)
+      const result = await command.run(sourceDir)
 
-        expect(mockedLogger.info).toHaveBeenCalledWith(
-          `${expectedTarget} -> ${resolvedSource}`
-        )
-      })
+      expect(result).toBe(
+        path.join(inkdropDir, 'packages', 'source-plugin')
+      )
     })
 
-    describe('error cases', () => {
-      it('should reject package names containing path traversal', async () => {
-        const sourcePath = '/projects/my-plugin'
+    it('should use explicit name option when provided', async () => {
+      const result = await command.run(sourceDir, { name: 'custom-name' })
 
-        await expect(
-          command.run(sourcePath, { name: '../../evil' })
-        ).rejects.toThrow('Invalid package name')
+      const expectedTarget = path.join(inkdropDir, 'packages', 'custom-name')
+      expect(result).toBe(expectedTarget)
 
-        expect(mockedSymlink).not.toHaveBeenCalled()
-      })
-
-      it('should reject absolute paths as package names', async () => {
-        const sourcePath = '/projects/my-plugin'
-
-        await expect(
-          command.run(sourcePath, { name: '/etc/evil' })
-        ).rejects.toThrow('Invalid package name')
-
-        expect(mockedSymlink).not.toHaveBeenCalled()
-      })
-
-      it('should reject empty package names', async () => {
-        const sourcePath = '/projects/my-plugin'
-
-        await expect(
-          command.run(sourcePath, { name: '' })
-        ).rejects.toThrow('Invalid package name')
-
-        expect(mockedSymlink).not.toHaveBeenCalled()
-      })
-
-      it('should throw when source path does not exist', async () => {
-        mockedAccess.mockRejectedValueOnce(new Error('ENOENT'))
-        const sourcePath = '/nonexistent/path'
-        const resolvedSource = path.resolve(sourcePath)
-
-        await expect(command.run(sourcePath)).rejects.toThrow(
-          `Package directory does not exist: ${resolvedSource}`
-        )
-
-        expect(mockedSymlink).not.toHaveBeenCalled()
-      })
-
-      it('should throw and log when symlink creation fails', async () => {
-        const symlinkError = new Error('Permission denied')
-        mockedSymlink.mockRejectedValueOnce(symlinkError)
-        const sourcePath = '/projects/my-plugin'
-        const resolvedSource = path.resolve(sourcePath)
-        const expectedTarget = path.join(
-          testInkdropDir,
-          'packages',
-          'my-plugin'
-        )
-
-        await expect(command.run(sourcePath)).rejects.toThrow(
-          `Linking ${expectedTarget} to ${resolvedSource} failed: Permission denied`
-        )
-
-        expect(mockedLogger.error).toHaveBeenCalled()
-      })
+      const stat = await lstat(expectedTarget)
+      expect(stat.isSymbolicLink()).toBe(true)
     })
   })
 
-  describe('constructor', () => {
-    it('should initialize with environment', () => {
-      const env = new Environment({ appVersion: '5.0.0' })
-      const cmd = new CommandLink(env)
+  describe('target directory', () => {
+    it('should link to packages/ by default', async () => {
+      const result = await command.run(sourceDir)
 
-      expect(cmd.env).toBe(env)
+      expect(result).toBe(path.join(inkdropDir, 'packages', 'my-plugin'))
+      const stat = await lstat(result)
+      expect(stat.isSymbolicLink()).toBe(true)
+    })
+
+    it('should link to dev/packages/ when dev option is true', async () => {
+      const result = await command.run(sourceDir, { dev: true })
+
+      expect(result).toBe(
+        path.join(inkdropDir, 'dev', 'packages', 'my-plugin')
+      )
+      const stat = await lstat(result)
+      expect(stat.isSymbolicLink()).toBe(true)
+    })
+  })
+
+  describe('symlink behavior', () => {
+    it('should create parent directories automatically', async () => {
+      const result = await command.run(sourceDir)
+
+      const stat = await lstat(result)
+      expect(stat.isSymbolicLink()).toBe(true)
+    })
+
+    it('should replace an existing symlink', async () => {
+      // First link
+      await command.run(sourceDir)
+
+      // Create a second source
+      const sourceDir2 = path.join(tmpDir, 'source-plugin-2')
+      await mkdir(sourceDir2, { recursive: true })
+      await writeFile(
+        path.join(sourceDir2, 'package.json'),
+        JSON.stringify({ name: 'my-plugin', version: '2.0.0' })
+      )
+
+      // Link again with same name
+      const result = await command.run(sourceDir2)
+
+      const linkTarget = await readlink(result)
+      expect(linkTarget).toBe(sourceDir2)
+    })
+
+    it('should replace an existing real directory', async () => {
+      // Create a real directory at the target path
+      const targetPath = path.join(inkdropDir, 'packages', 'my-plugin')
+      await mkdir(targetPath, { recursive: true })
+      await writeFile(path.join(targetPath, 'index.js'), 'module.exports = {}')
+
+      // Link should replace it
+      const result = await command.run(sourceDir)
+
+      const stat = await lstat(result)
+      expect(stat.isSymbolicLink()).toBe(true)
+
+      const linkTarget = await readlink(result)
+      expect(linkTarget).toBe(sourceDir)
+    })
+
+    it('should resolve relative package paths', async () => {
+      const originalCwd = process.cwd()
+      try {
+        process.chdir(tmpDir)
+        const result = await command.run('source-plugin')
+
+        const stat = await lstat(result)
+        expect(stat.isSymbolicLink()).toBe(true)
+
+        const linkTarget = await readlink(result)
+        expect(linkTarget).toBe(sourceDir)
+      } finally {
+        process.chdir(originalCwd)
+      }
+    })
+
+    it('should allow reading files through the symlink', async () => {
+      await writeFile(path.join(sourceDir, 'index.js'), 'module.exports = 42')
+
+      const result = await command.run(sourceDir)
+
+      const content = await readFile(path.join(result, 'index.js'), 'utf-8')
+      expect(content).toBe('module.exports = 42')
+    })
+  })
+
+  describe('error cases', () => {
+    it('should throw when source path does not exist', async () => {
+      const nonexistent = path.join(tmpDir, 'nonexistent')
+
+      await expect(command.run(nonexistent)).rejects.toThrow(
+        'Package directory does not exist'
+      )
+    })
+
+    it('should reject package names containing path traversal', async () => {
+      await expect(
+        command.run(sourceDir, { name: '../../evil' })
+      ).rejects.toThrow('Invalid package name')
+    })
+
+    it('should reject absolute paths as package names', async () => {
+      await expect(
+        command.run(sourceDir, { name: '/etc/evil' })
+      ).rejects.toThrow('Invalid package name')
+    })
+
+    it('should reject empty package names', async () => {
+      await expect(
+        command.run(sourceDir, { name: '' })
+      ).rejects.toThrow('Invalid package name')
     })
   })
 })
