@@ -169,7 +169,10 @@ describe('CommandLink', () => {
           'packages',
           'my-plugin'
         )
-        expect(mockedRm).toHaveBeenCalledWith(targetPath, { force: true })
+        expect(mockedRm).toHaveBeenCalledWith(targetPath, {
+          recursive: true,
+          force: true
+        })
         // rm should be called before symlink
         const rmOrder = mockedRm.mock.invocationCallOrder[0]
         const symlinkOrder = mockedSymlink.mock.invocationCallOrder[0]
@@ -224,6 +227,36 @@ describe('CommandLink', () => {
     })
 
     describe('error cases', () => {
+      it('should reject package names containing path traversal', async () => {
+        const sourcePath = '/projects/my-plugin'
+
+        await expect(
+          command.run(sourcePath, { name: '../../evil' })
+        ).rejects.toThrow('Invalid package name')
+
+        expect(mockedSymlink).not.toHaveBeenCalled()
+      })
+
+      it('should reject absolute paths as package names', async () => {
+        const sourcePath = '/projects/my-plugin'
+
+        await expect(
+          command.run(sourcePath, { name: '/etc/evil' })
+        ).rejects.toThrow('Invalid package name')
+
+        expect(mockedSymlink).not.toHaveBeenCalled()
+      })
+
+      it('should reject empty package names', async () => {
+        const sourcePath = '/projects/my-plugin'
+
+        await expect(
+          command.run(sourcePath, { name: '' })
+        ).rejects.toThrow('Invalid package name')
+
+        expect(mockedSymlink).not.toHaveBeenCalled()
+      })
+
       it('should throw when source path does not exist', async () => {
         mockedAccess.mockRejectedValueOnce(new Error('ENOENT'))
         const sourcePath = '/nonexistent/path'
