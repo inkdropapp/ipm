@@ -1,5 +1,7 @@
+import { execFile } from 'child_process'
 import * as fs from 'fs/promises'
 import path from 'path'
+import { promisify } from 'util'
 import axios, { isAxiosError } from 'axios'
 import FormData from 'form-data'
 import * as tar from 'tar'
@@ -57,13 +59,16 @@ export class CommandPublish {
       // Step 1 - Validate the package metadata
       await this.validatePackageContents(pkg, repoDir)
 
-      // Step 2 - Create a tarball file of the package
+      // Step 2 - Run prepublishOnly script if defined
+      await this.runPrepublishScript(pkg, repoDir)
+
+      // Step 3 - Create a tarball file of the package
       const { filePath } = await this.createTarball(pkg, repoDir)
 
-      // Step 3 - Upload the tarball to the Inkdrop package registry via the local http server
+      // Step 4 - Upload the tarball to the Inkdrop package registry via the local http server
       await this.uploadTarball(pkg, filePath, repository!, dryrun)
 
-      // Step 4 - Clean up the created tarball file
+      // Step 5 - Clean up the created tarball file
       await fs.rm(filePath, { force: true })
       logger.info('Cleaned up temporary tarball')
 
@@ -130,6 +135,33 @@ export class CommandPublish {
         })
       }
       throw error
+    }
+  }
+
+  private async runPrepublishScript(pkg: any, repoDir: string) {
+    const script = pkg.scripts?.prepublishOnly
+    if (!script) {
+      return
+    }
+
+    logger.info(`Running prepublishOnly script: ${script}`)
+
+    const execFileAsync = promisify(execFile)
+    const shell = process.platform === 'win32' ? 'cmd' : '/bin/sh'
+    const shellArgs =
+      process.platform === 'win32' ? ['/c', script] : ['-c', script]
+
+    try {
+      const { stdout, stderr } = await execFileAsync(shell, shellArgs, {
+        cwd: repoDir
+      })
+      if (stdout) logger.debug(stdout)
+      if (stderr) logger.warn(stderr)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      throw new Error(`prepublishOnly script failed: ${message}`, {
+        cause: error
+      })
     }
   }
 
