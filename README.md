@@ -133,10 +133,7 @@ const packageInfo = await ipm.registry.getPackageInfo('package-name')
 Get information about a specific version of a package:
 
 ```ts
-const versionInfo = await ipm.registry.getPackageVersionInfo(
-  'package-name',
-  '1.0.0'
-)
+const versionInfo = await ipm.registry.getPackageVersionInfo('package-name', '1.0.0')
 ```
 
 - `name`: The name of the package
@@ -169,29 +166,31 @@ const packages = await ipm.registry.getPackages({ sort: 'recency', page: 0 })
 ### Prerequisites
 
 - Node.js 20.x or higher
-- npm
+- pnpm
 
 ### Setup
 
 ```sh
-npm install
+pnpm install
 ```
 
 ### Scripts
 
-- `npm test` - Run tests
-- `npm run test:watch` - Run tests in watch mode
-- `npm run lint` - Run ESLint
-- `npm run lint:fix` - Run ESLint with auto-fix
-- `npm run typecheck` - Run TypeScript type checking
+- `pnpm test` - Run tests (Vitest)
+- `pnpm run test:watch` - Run tests in watch mode
+- `pnpm run lint` - Run oxlint
+- `pnpm run lint:fix` - Run oxlint with auto-fix
+- `pnpm run format` - Format code with oxfmt
+- `pnpm run typecheck` - Run TypeScript type checking
+- `pnpm run build` - Build with tsdown
 
 ### CI/CD
 
 This project uses GitHub Actions for continuous integration. The CI pipeline runs:
 
-- Tests on Node.js 18.x, 20.x, and 22.x
+- Tests on Node.js 24.x
 - Cross-platform testing (Ubuntu, Windows, macOS)
-- Linting with ESLint
+- Linting with oxlint and format checking with oxfmt
 - Type checking with TypeScript
 
 All pull requests must pass CI checks before merging.

@@ -10,11 +10,7 @@ describe('Real Installation Test', () => {
       appHomePath: './tmp' // Install to ./tmp directory
     })
     const realRegistry = new IPMRegistry('5.9.0', 'https://api.inkdrop.app')
-    const realCommandInstall = new CommandInstall(
-      '5.9.0',
-      realEnvironment,
-      realRegistry
-    )
+    const realCommandInstall = new CommandInstall('5.9.0', realEnvironment, realRegistry)
 
     console.log('🚀 Starting real installation of math package...')
 
@@ -51,11 +47,7 @@ describe('Real Installation Test', () => {
 
       // List some key dependencies
       const katexPath = path.default.join(nodeModulesPath, 'katex')
-      const reactKatexPath = path.default.join(
-        nodeModulesPath,
-        '@matejmazur',
-        'react-katex'
-      )
+      const reactKatexPath = path.default.join(nodeModulesPath, '@matejmazur', 'react-katex')
 
       try {
         await fs.access(katexPath)

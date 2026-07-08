@@ -1,19 +1,21 @@
 import { readdir, readFile } from 'fs/promises'
 import path from 'path'
-import { jest } from '@jest/globals'
+
+import { vi, type Mocked, type MockedFunction } from 'vitest'
+
 import { CommandGetOutdated } from '../src/commands/get-outdated'
 import { Environment } from '../src/environment'
 import { logger } from '../src/logger'
 import { IPMRegistry } from '../src/registry'
 import { PackageInfo, PackageMetadata } from '../src/types'
 
-jest.mock('fs/promises')
-jest.mock('../src/logger')
-jest.mock('../src/registry')
+vi.mock('fs/promises')
+vi.mock('../src/logger')
+vi.mock('../src/registry')
 
-const mockedReaddir = readdir as jest.MockedFunction<typeof readdir>
-const mockedReadFile = readFile as jest.MockedFunction<typeof readFile>
-const mockedLogger = logger as jest.Mocked<typeof logger>
+const mockedReaddir = readdir as MockedFunction<typeof readdir>
+const mockedReadFile = readFile as MockedFunction<typeof readFile>
+const mockedLogger = logger as Mocked<typeof logger>
 
 // Mock data for testing
 const mockInstalledPackage1: PackageMetadata = {
@@ -60,8 +62,7 @@ const mockRegistryPackage1: PackageInfo = {
         inkdrop: '>=5.0.0'
       },
       dist: {
-        tarball:
-          'https://api.inkdrop.app/packages/test-package-1/-/test-package-1-1.0.0.tgz'
+        tarball: 'https://api.inkdrop.app/packages/test-package-1/-/test-package-1-1.0.0.tgz'
       }
     },
     '1.5.0': {
@@ -74,8 +75,7 @@ const mockRegistryPackage1: PackageInfo = {
         inkdrop: '>=5.0.0'
       },
       dist: {
-        tarball:
-          'https://api.inkdrop.app/packages/test-package-1/-/test-package-1-1.5.0.tgz'
+        tarball: 'https://api.inkdrop.app/packages/test-package-1/-/test-package-1-1.5.0.tgz'
       }
     }
   }
@@ -109,8 +109,7 @@ const mockRegistryPackage2: PackageInfo = {
         inkdrop: '>=5.0.0'
       },
       dist: {
-        tarball:
-          'https://api.inkdrop.app/packages/test-package-2/-/test-package-2-2.0.0.tgz'
+        tarball: 'https://api.inkdrop.app/packages/test-package-2/-/test-package-2-2.0.0.tgz'
       }
     }
   }
@@ -119,36 +118,30 @@ const mockRegistryPackage2: PackageInfo = {
 describe('CommandGetOutdated', () => {
   let command: CommandGetOutdated
   let mockEnvironment: Environment
-  let mockRegistry: jest.Mocked<IPMRegistry>
+  let mockRegistry: Mocked<IPMRegistry>
   const testInkdropVersion = '5.0.0'
   const testInkdropDir = '/test/inkdrop'
   const testPackagesDir = path.join(testInkdropDir, 'packages')
 
   beforeEach(() => {
     // Reset all mocks
-    jest.clearAllMocks()
+    vi.clearAllMocks()
 
     // Create mock environment
     mockEnvironment = new Environment({ appVersion: testInkdropVersion })
-    jest
-      .spyOn(mockEnvironment, 'getInkdropDirectory')
-      .mockReturnValue(testInkdropDir)
+    vi.spyOn(mockEnvironment, 'getInkdropDirectory').mockReturnValue(testInkdropDir)
 
     // Create mock registry
     mockRegistry = new IPMRegistry(
       testInkdropVersion,
       'http://test-api.inkdrop.app'
-    ) as jest.Mocked<IPMRegistry>
+    ) as Mocked<IPMRegistry>
 
     // Reset registry mock methods
-    mockRegistry.getPackageInfo = jest.fn()
+    mockRegistry.getPackageInfo = vi.fn()
 
     // Create command instance
-    command = new CommandGetOutdated(
-      testInkdropVersion,
-      mockEnvironment,
-      mockRegistry
-    )
+    command = new CommandGetOutdated(testInkdropVersion, mockEnvironment, mockRegistry)
 
     // Default mock behaviors
     mockedReaddir.mockResolvedValue([])
@@ -191,10 +184,7 @@ describe('CommandGetOutdated', () => {
     describe('with outdated packages', () => {
       beforeEach(() => {
         // Mock installed packages
-        mockedReaddir.mockResolvedValue([
-          'test-package-1',
-          'test-package-2'
-        ] as any)
+        mockedReaddir.mockResolvedValue(['test-package-1', 'test-package-2'] as any)
 
         // Mock package.json files
         mockedReadFile
@@ -226,12 +216,8 @@ describe('CommandGetOutdated', () => {
           path.join(testPackagesDir, 'test-package-2', 'package.json'),
           'utf8'
         )
-        expect(mockRegistry.getPackageInfo).toHaveBeenCalledWith(
-          'test-package-1'
-        )
-        expect(mockRegistry.getPackageInfo).toHaveBeenCalledWith(
-          'test-package-2'
-        )
+        expect(mockRegistry.getPackageInfo).toHaveBeenCalledWith('test-package-1')
+        expect(mockRegistry.getPackageInfo).toHaveBeenCalledWith('test-package-2')
       })
     })
 
@@ -241,9 +227,7 @@ describe('CommandGetOutdated', () => {
         mockedReaddir.mockResolvedValue(['test-package-2'] as any)
 
         // Mock package.json file
-        mockedReadFile.mockResolvedValueOnce(
-          JSON.stringify(mockInstalledPackage2)
-        )
+        mockedReadFile.mockResolvedValueOnce(JSON.stringify(mockInstalledPackage2))
 
         // Mock registry response - same version as installed
         mockRegistry.getPackageInfo.mockResolvedValueOnce(mockRegistryPackage2)
@@ -253,36 +237,28 @@ describe('CommandGetOutdated', () => {
         const result = await command.run()
 
         expect(result).toEqual([])
-        expect(mockRegistry.getPackageInfo).toHaveBeenCalledWith(
-          'test-package-2'
-        )
+        expect(mockRegistry.getPackageInfo).toHaveBeenCalledWith('test-package-2')
       })
     })
 
     describe('error handling', () => {
       beforeEach(() => {
         // Clear all previous mocks for error handling tests
-        jest.clearAllMocks()
-        mockRegistry.getPackageInfo = jest.fn()
+        vi.clearAllMocks()
+        mockRegistry.getPackageInfo = vi.fn()
       })
 
       it('should handle registry errors gracefully and continue with other packages', async () => {
         mockedReaddir.mockResolvedValue(['test-package-1'] as any)
-        mockedReadFile.mockResolvedValueOnce(
-          JSON.stringify(mockInstalledPackage1)
-        )
+        mockedReadFile.mockResolvedValueOnce(JSON.stringify(mockInstalledPackage1))
 
         // Mock registry error for first package
-        mockRegistry.getPackageInfo.mockRejectedValueOnce(
-          new Error('Registry error')
-        )
+        mockRegistry.getPackageInfo.mockRejectedValueOnce(new Error('Registry error'))
 
         const result = await command.run()
 
         expect(result).toEqual([])
-        expect(mockRegistry.getPackageInfo).toHaveBeenCalledWith(
-          'test-package-1'
-        )
+        expect(mockRegistry.getPackageInfo).toHaveBeenCalledWith('test-package-1')
         expect(mockedLogger.warn).toHaveBeenCalledWith(
           'Warning: Could not check updates for test-package-1:',
           expect.any(Error)
@@ -362,21 +338,15 @@ describe('CommandGetOutdated', () => {
 
       beforeEach(() => {
         mockedReaddir.mockResolvedValue(['test-package-1'] as any)
-        mockedReadFile.mockResolvedValueOnce(
-          JSON.stringify(mockInstalledPackage1)
-        )
-        mockRegistry.getPackageInfo.mockResolvedValueOnce(
-          mockIncompatiblePackage
-        )
+        mockedReadFile.mockResolvedValueOnce(JSON.stringify(mockInstalledPackage1))
+        mockRegistry.getPackageInfo.mockResolvedValueOnce(mockIncompatiblePackage)
       })
 
       it('should not include packages with no compatible versions', async () => {
         const result = await command.run()
 
         expect(result).toEqual([])
-        expect(mockRegistry.getPackageInfo).toHaveBeenCalledWith(
-          'test-package-1'
-        )
+        expect(mockRegistry.getPackageInfo).toHaveBeenCalledWith('test-package-1')
       })
     })
   })

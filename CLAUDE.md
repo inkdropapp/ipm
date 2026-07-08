@@ -39,21 +39,26 @@ Check out @README
 
 ## Development Commands
 
-- **Linting**: `npm run lint` - Run ESLint on TypeScript files
-- **Linting and fixing**: `npm run lint:fix` - Run ESLint on TypeScript files and automatically fix issues
-- **Type checking**: `npm run typecheck` - Check TypeScript types without emitting files
-- **Format code**: `npm run format` - Format code with Prettier
-- **Run tests**: `npm run test` - Run tests with Jest
+This project uses **pnpm**.
+
+- **Linting**: `pnpm run lint` - Run oxlint on TypeScript files
+- **Linting and fixing**: `pnpm run lint:fix` - Run oxlint on TypeScript files and automatically fix issues
+- **Type checking**: `pnpm run typecheck` - Check TypeScript types without emitting files
+- **Format code**: `pnpm run format` - Format code with oxfmt
+- **Run tests**: `pnpm run test` - Run tests with Vitest
+- **Build**: `pnpm run build` - Bundle with tsdown
 
 ## Project Structure
 
-- `src/index.ts` - Main entry point (currently empty)
-- `eslint.config.js` - ESLint configuration using flat config format
+- `src/index.ts` - Main entry point
+- `.oxlintrc.json` - oxlint configuration
+- `.oxfmtrc.json` - oxfmt configuration
+- `tsdown.config.ts` - Build (bundler) configuration
+- `vitest.config.ts` - Test runner configuration
 - `package.json` - Project configuration with ES module type
 
 ## Development Notes
 
-- The project uses TypeScript 5.8+ with strict ESLint rules
-- ESLint is configured to ignore unused variables/parameters prefixed with underscore
-- No build step is currently configured - this is a TypeScript source project
-- Tests directory exists but no test framework is currently set up
+- The project uses TypeScript 6.x
+- oxlint is configured to ignore unused variables/parameters prefixed with underscore
+- The build step bundles `src/index.ts` to `lib/` (ESM + declarations) via tsdown

@@ -24,27 +24,16 @@ export class IPM {
       process.env.INKDROP_VERSION || options.appVersion
     )
     this.env = new Environment(options)
-    this.registry = new IPMRegistry(
-      this.installedInkdropVersion,
-      this.env.getInkdropApiUrl()
-    )
+    this.registry = new IPMRegistry(this.installedInkdropVersion, this.env.getInkdropApiUrl())
   }
 
   async install(name: string, version?: string): Promise<void> {
-    const command = new CommandInstall(
-      this.installedInkdropVersion,
-      this.env,
-      this.registry
-    )
+    const command = new CommandInstall(this.installedInkdropVersion, this.env, this.registry)
     await command.run(name, version)
   }
 
   async update(name: string, version?: string): Promise<void> {
-    const command = new CommandUpdate(
-      this.installedInkdropVersion,
-      this.env,
-      this.registry
-    )
+    const command = new CommandUpdate(this.installedInkdropVersion, this.env, this.registry)
     await command.run(name, version)
   }
 
@@ -59,11 +48,7 @@ export class IPM {
   }
 
   async getOutdated(): Promise<OutdatedPackageInfo[]> {
-    const command = new CommandGetOutdated(
-      this.installedInkdropVersion,
-      this.env,
-      this.registry
-    )
+    const command = new CommandGetOutdated(this.installedInkdropVersion, this.env, this.registry)
     return await command.run()
   }
 
@@ -72,17 +57,12 @@ export class IPM {
     return await command.run()
   }
 
-  async publish(
-    opts: { dryrun?: boolean } = { dryrun: false }
-  ): Promise<boolean> {
+  async publish(opts: { dryrun?: boolean } = { dryrun: false }): Promise<boolean> {
     const command = new CommandPublish(this.env, this.registry)
     return await command.run(opts)
   }
 
-  async unpublish(
-    name: string,
-    opts: { version?: string } = {}
-  ): Promise<boolean> {
+  async unpublish(name: string, opts: { version?: string } = {}): Promise<boolean> {
     const command = new CommandUnpublish(this.env, this.registry)
     return await command.run(name, opts)
   }

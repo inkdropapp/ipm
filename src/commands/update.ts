@@ -1,6 +1,8 @@
 import { readFile } from 'fs/promises'
 import path from 'path'
+
 import semver from 'semver'
+
 import { logger } from '../logger'
 import { PackageMetadata } from '../types'
 import { getLatestCompatibleVersion } from '../utils'
@@ -31,10 +33,7 @@ export class CommandUpdate extends CommandInstall {
     } else {
       // Get latest compatible version from registry
       const pkg = await this.requestPackage(name)
-      const latestVersion = getLatestCompatibleVersion(
-        pkg,
-        this.installedInkdropVersion
-      )
+      const latestVersion = getLatestCompatibleVersion(pkg, this.installedInkdropVersion)
       if (!latestVersion) {
         throw new Error(
           `No compatible version found for package \`${name}\` with Inkdrop v${this.installedInkdropVersion}`
@@ -51,9 +50,7 @@ export class CommandUpdate extends CommandInstall {
 
     // Check if current version is newer than target (downgrade case)
     if (semver.gt(currentVersion, targetVersion)) {
-      logger.info(
-        `Downgrading ${name} from ${currentVersion} to ${targetVersion}`
-      )
+      logger.info(`Downgrading ${name} from ${currentVersion} to ${targetVersion}`)
     } else {
       logger.info(`Updating ${name} from ${currentVersion} to ${targetVersion}`)
     }

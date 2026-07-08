@@ -1,5 +1,6 @@
 import { access, mkdir, readFile, rm, symlink } from 'fs/promises'
 import path from 'path'
+
 import { Environment } from '../environment'
 import { logger } from '../logger'
 
@@ -20,11 +21,7 @@ export class CommandLink {
 
     const packageName = opts.name ?? (await this.resolvePackageName(sourcePath))
 
-    if (
-      !packageName ||
-      packageName.includes('..') ||
-      path.isAbsolute(packageName)
-    ) {
+    if (!packageName || packageName.includes('..') || path.isAbsolute(packageName)) {
       throw new Error(`Invalid package name: ${packageName}`)
     }
 
@@ -45,9 +42,7 @@ export class CommandLink {
       return targetPath
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
-      const linkError = new Error(
-        `Linking ${targetPath} to ${sourcePath} failed: ${message}`
-      )
+      const linkError = new Error(`Linking ${targetPath} to ${sourcePath} failed: ${message}`)
       logger.error(`Failed to link package:`, linkError)
       throw linkError
     }
@@ -55,10 +50,7 @@ export class CommandLink {
 
   private async resolvePackageName(sourcePath: string): Promise<string> {
     try {
-      const content = await readFile(
-        path.join(sourcePath, 'package.json'),
-        'utf-8'
-      )
+      const content = await readFile(path.join(sourcePath, 'package.json'), 'utf-8')
       const pkg = JSON.parse(content)
       if (pkg.name) {
         return pkg.name

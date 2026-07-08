@@ -1,4 +1,5 @@
 import semver from 'semver'
+
 import { PackageInfo } from './types'
 
 export function normalizeVersion(version: string) {
@@ -24,10 +25,7 @@ export async function getErrorMessage(response: Response) {
   return message
 }
 
-export function getLatestCompatibleVersion(
-  pack: PackageInfo,
-  targetInkdropVersion: string | null
-) {
+export function getLatestCompatibleVersion(pack: PackageInfo, targetInkdropVersion: string | null) {
   if (!targetInkdropVersion) {
     return pack.releases.latest
   }

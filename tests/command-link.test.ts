@@ -1,16 +1,10 @@
-import {
-  lstat,
-  readFile,
-  readlink,
-  realpath,
-  rm,
-  writeFile,
-  mkdir
-} from 'fs/promises'
 import { mkdtempSync } from 'fs'
-import path from 'path'
+import { lstat, readFile, readlink, realpath, rm, writeFile, mkdir } from 'fs/promises'
 import os from 'os'
-import { jest } from '@jest/globals'
+import path from 'path'
+
+import { vi } from 'vitest'
+
 import { CommandLink } from '../src/commands/link'
 import { Environment } from '../src/environment'
 
@@ -23,9 +17,7 @@ describe('CommandLink', () => {
 
   beforeEach(async () => {
     // Resolve real path to avoid symlink issues (e.g., macOS /var -> /private/var)
-    tmpDir = await realpath(
-      mkdtempSync(path.join(os.tmpdir(), 'ipm-link-test-'))
-    )
+    tmpDir = await realpath(mkdtempSync(path.join(os.tmpdir(), 'ipm-link-test-')))
     inkdropDir = path.join(tmpDir, 'inkdrop')
     sourceDir = path.join(tmpDir, 'source-plugin')
 
@@ -36,7 +28,7 @@ describe('CommandLink', () => {
     )
 
     env = new Environment({ appVersion: '5.0.0' })
-    jest.spyOn(env, 'getInkdropDirectory').mockReturnValue(inkdropDir)
+    vi.spyOn(env, 'getInkdropDirectory').mockReturnValue(inkdropDir)
     command = new CommandLink(env)
   })
 
@@ -59,16 +51,11 @@ describe('CommandLink', () => {
     })
 
     it('should fall back to directory basename when package.json has no name', async () => {
-      await writeFile(
-        path.join(sourceDir, 'package.json'),
-        JSON.stringify({ version: '1.0.0' })
-      )
+      await writeFile(path.join(sourceDir, 'package.json'), JSON.stringify({ version: '1.0.0' }))
 
       const result = await command.run(sourceDir)
 
-      expect(result).toBe(
-        path.join(inkdropDir, 'packages', 'source-plugin')
-      )
+      expect(result).toBe(path.join(inkdropDir, 'packages', 'source-plugin'))
     })
 
     it('should fall back to directory basename when package.json does not exist', async () => {
@@ -76,9 +63,7 @@ describe('CommandLink', () => {
 
       const result = await command.run(sourceDir)
 
-      expect(result).toBe(
-        path.join(inkdropDir, 'packages', 'source-plugin')
-      )
+      expect(result).toBe(path.join(inkdropDir, 'packages', 'source-plugin'))
     })
 
     it('should fall back to directory basename when package.json is invalid JSON', async () => {
@@ -86,9 +71,7 @@ describe('CommandLink', () => {
 
       const result = await command.run(sourceDir)
 
-      expect(result).toBe(
-        path.join(inkdropDir, 'packages', 'source-plugin')
-      )
+      expect(result).toBe(path.join(inkdropDir, 'packages', 'source-plugin'))
     })
 
     it('should use explicit name option when provided', async () => {
@@ -114,9 +97,7 @@ describe('CommandLink', () => {
     it('should link to dev/packages/ when dev option is true', async () => {
       const result = await command.run(sourceDir, { dev: true })
 
-      expect(result).toBe(
-        path.join(inkdropDir, 'dev', 'packages', 'my-plugin')
-      )
+      expect(result).toBe(path.join(inkdropDir, 'dev', 'packages', 'my-plugin'))
       const stat = await lstat(result)
       expect(stat.isSymbolicLink()).toBe(true)
     })
@@ -195,27 +176,23 @@ describe('CommandLink', () => {
     it('should throw when source path does not exist', async () => {
       const nonexistent = path.join(tmpDir, 'nonexistent')
 
-      await expect(command.run(nonexistent)).rejects.toThrow(
-        'Package directory does not exist'
-      )
+      await expect(command.run(nonexistent)).rejects.toThrow('Package directory does not exist')
     })
 
     it('should reject package names containing path traversal', async () => {
-      await expect(
-        command.run(sourceDir, { name: '../../evil' })
-      ).rejects.toThrow('Invalid package name')
+      await expect(command.run(sourceDir, { name: '../../evil' })).rejects.toThrow(
+        'Invalid package name'
+      )
     })
 
     it('should reject absolute paths as package names', async () => {
-      await expect(
-        command.run(sourceDir, { name: '/etc/evil' })
-      ).rejects.toThrow('Invalid package name')
+      await expect(command.run(sourceDir, { name: '/etc/evil' })).rejects.toThrow(
+        'Invalid package name'
+      )
     })
 
     it('should reject empty package names', async () => {
-      await expect(
-        command.run(sourceDir, { name: '' })
-      ).rejects.toThrow('Invalid package name')
+      await expect(command.run(sourceDir, { name: '' })).rejects.toThrow('Invalid package name')
     })
   })
 })

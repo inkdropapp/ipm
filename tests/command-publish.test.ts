@@ -1,6 +1,7 @@
 import './env'
 import { rm } from 'fs/promises'
 import path from 'path'
+
 import { CommandPublish } from '../src/commands/publish'
 import { Environment } from '../src/environment'
 import { IPMRegistry } from '../src/registry'
@@ -109,9 +110,9 @@ describe('CommandPublish', () => {
           repository: 'https://github.com/test/test.git'
         }
 
-        await expect(
-          command.validatePackageContents(pkg, fixtureDir)
-        ).rejects.toThrow('package.json must have a valid "name" field')
+        await expect(command.validatePackageContents(pkg, fixtureDir)).rejects.toThrow(
+          'package.json must have a valid "name" field'
+        )
       })
 
       it('should throw if package version is missing', async () => {
@@ -120,9 +121,9 @@ describe('CommandPublish', () => {
           repository: 'https://github.com/test/test.git'
         }
 
-        await expect(
-          command.validatePackageContents(pkg, fixtureDir)
-        ).rejects.toThrow('package.json must have a valid "version" field')
+        await expect(command.validatePackageContents(pkg, fixtureDir)).rejects.toThrow(
+          'package.json must have a valid "version" field'
+        )
       })
     })
   })

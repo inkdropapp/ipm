@@ -1,63 +1,60 @@
 {
   "name": "@inkdropapp/ipm",
   "version": "1.1.0",
-  "type": "module",
   "description": "Inkdrop Package Manager",
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
-  "scripts": {
-    "build": "tsup",
-    "clean": "rm -rf lib",
-    "prepublishOnly": "npm run clean && npm run build",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:ci": "jest --testPathIgnorePatterns=\"command-publish.test.ts\"",
-    "test:real-install": "jest tests/real-install.test.ts --testMatch=\"**/tests/real-install.test.ts\"",
-    "test:real-outdated": "jest tests/real-get-outdated.test.ts --testMatch=\"**/tests/real-get-outdated.test.ts\"",
-    "format": "prettier --write .",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "typecheck": "tsc --noEmit"
-  },
   "keywords": [
     "Inkdrop"
   ],
-  "author": "Takuya Matsuyama <t@inkdrop.app>",
   "homepage": "https://github.com/inkdropapp/ipm#readme",
   "bugs": {
     "url": "https://github.com/inkdropapp/ipm/issues"
   },
+  "license": "UNLICENSED",
+  "author": "Takuya Matsuyama <t@inkdrop.app>",
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/inkdropapp/ipm.git"
   },
-  "license": "UNLICENSED",
-  "dependencies": {
-    "@inkdropapp/logger": "^4.0.0",
-    "axios": "^1.13.6",
-    "inkdrop-consts": "^3.1.0",
-    "semver": "^7.7.4",
-    "tar": "^7.5.11"
-  },
-  "devDependencies": {
-    "@eslint/js": "^10.0.1",
-    "@ianvs/prettier-plugin-sort-imports": "^4.7.1",
-    "@types/debug": "^4.1.12",
-    "@types/jest": "^30.0.0",
-    "@types/node": "^25.4.0",
-    "@types/semver": "^7.7.1",
-    "@types/tar": "^7.0.87",
-    "dotenv": "^17.3.1",
-    "eslint": "^10.0.3",
-    "globals": "^17.4.0",
-    "jest": "^30.2.0",
-    "prettier": "^3.8.1",
-    "ts-jest": "^29.4.6",
-    "tsup": "^8.5.1",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.57.0"
-  },
   "files": [
     "lib"
-  ]
+  ],
+  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "build": "tsdown",
+    "clean": "rm -rf lib",
+    "prepublishOnly": "pnpm run clean && pnpm run build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ci": "vitest run --exclude \"**/command-publish.test.ts\"",
+    "test:real-install": "RUN_REAL_TESTS=1 vitest run tests/real-install.test.ts",
+    "test:real-outdated": "RUN_REAL_TESTS=1 vitest run tests/real-get-outdated.test.ts",
+    "format": "oxfmt",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@inkdropapp/logger": "^4.0.0",
+    "axios": "^1.18.1",
+    "form-data": "^4.0.6",
+    "inkdrop-consts": "^3.2.1",
+    "semver": "^7.8.5",
+    "tar": "^7.5.19"
+  },
+  "devDependencies": {
+    "@types/debug": "^4.1.13",
+    "@types/node": "^26.1.0",
+    "@types/semver": "^7.7.1",
+    "@types/tar": "^7.0.87",
+    "@vitest/coverage-v8": "^4.1.10",
+    "dotenv": "^17.4.2",
+    "oxfmt": "^0.58.0",
+    "oxlint": "^1.73.0",
+    "tsdown": "^0.22.3",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.10"
+  },
+  "packageManager": "pnpm@11.9.0"
 }

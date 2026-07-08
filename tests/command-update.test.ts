@@ -1,17 +1,19 @@
 import { readFile } from 'fs/promises'
-import { jest } from '@jest/globals'
+
+import { vi, type Mocked, type MockedFunction } from 'vitest'
+
 import { CommandUpdate } from '../src/commands/update'
 import { Environment } from '../src/environment'
 import { logger } from '../src/logger'
 import { IPMRegistry } from '../src/registry'
 import { PackageInfo } from '../src/types'
 
-jest.mock('fs/promises')
-jest.mock('../src/logger')
-jest.mock('../src/registry')
+vi.mock('fs/promises')
+vi.mock('../src/logger')
+vi.mock('../src/registry')
 
-const mockedReadFile = readFile as jest.MockedFunction<typeof readFile>
-const mockedLogger = logger as jest.Mocked<typeof logger>
+const mockedReadFile = readFile as MockedFunction<typeof readFile>
+const mockedLogger = logger as Mocked<typeof logger>
 
 // Mock package data for testing
 const mockPackageInfo: PackageInfo = {
@@ -42,8 +44,7 @@ const mockPackageInfo: PackageInfo = {
         inkdrop: '^5.0.0'
       },
       dist: {
-        tarball:
-          'https://registry.test.com/test-package/-/test-package-1.0.0.tgz'
+        tarball: 'https://registry.test.com/test-package/-/test-package-1.0.0.tgz'
       }
     },
     '1.5.0': {
@@ -56,8 +57,7 @@ const mockPackageInfo: PackageInfo = {
         inkdrop: '^5.0.0'
       },
       dist: {
-        tarball:
-          'https://registry.test.com/test-package/-/test-package-1.5.0.tgz'
+        tarball: 'https://registry.test.com/test-package/-/test-package-1.5.0.tgz'
       }
     },
     '2.0.0': {
@@ -70,8 +70,7 @@ const mockPackageInfo: PackageInfo = {
         inkdrop: '^5.0.0'
       },
       dist: {
-        tarball:
-          'https://registry.test.com/test-package/-/test-package-2.0.0.tgz'
+        tarball: 'https://registry.test.com/test-package/-/test-package-2.0.0.tgz'
       }
     }
   }
@@ -80,7 +79,7 @@ const mockPackageInfo: PackageInfo = {
 describe('CommandUpdate', () => {
   let command: CommandUpdate
   let mockEnvironment: Environment
-  let mockRegistry: jest.Mocked<IPMRegistry>
+  let mockRegistry: Mocked<IPMRegistry>
   let parentRunSpy: any
   let requestPackageSpy: any
 
@@ -90,35 +89,24 @@ describe('CommandUpdate', () => {
 
   beforeEach(() => {
     // Reset all mocks
-    jest.clearAllMocks()
+    vi.clearAllMocks()
 
     // Create mock environment
     mockEnvironment = new Environment({ appVersion: testInkdropVersion })
-    jest
-      .spyOn(mockEnvironment, 'getInkdropDirectory')
-      .mockReturnValue(testInkdropDir)
-    jest
-      .spyOn(mockEnvironment, 'getCacheDirectory')
-      .mockReturnValue('/test/cache')
+    vi.spyOn(mockEnvironment, 'getInkdropDirectory').mockReturnValue(testInkdropDir)
+    vi.spyOn(mockEnvironment, 'getCacheDirectory').mockReturnValue('/test/cache')
 
     // Create mock registry
-    mockRegistry = new IPMRegistry(
-      testInkdropVersion,
-      'test-url'
-    ) as jest.Mocked<IPMRegistry>
+    mockRegistry = new IPMRegistry(testInkdropVersion, 'test-url') as Mocked<IPMRegistry>
 
     // Create command instance
-    command = new CommandUpdate(
-      testInkdropVersion,
-      mockEnvironment,
-      mockRegistry
-    )
+    command = new CommandUpdate(testInkdropVersion, mockEnvironment, mockRegistry)
 
     // Mock parent class methods
-    parentRunSpy = jest
+    parentRunSpy = vi
       .spyOn(Object.getPrototypeOf(CommandUpdate.prototype), 'run')
       .mockResolvedValue(undefined)
-    requestPackageSpy = jest
+    requestPackageSpy = vi
       .spyOn(command as any, 'requestPackage')
       .mockResolvedValue(mockPackageInfo)
   })
@@ -225,9 +213,7 @@ describe('CommandUpdate', () => {
         const registryError = new Error('Registry unavailable')
         requestPackageSpy.mockRejectedValue(registryError)
 
-        await expect(command.run(testPackageName)).rejects.toThrow(
-          'Registry unavailable'
-        )
+        await expect(command.run(testPackageName)).rejects.toThrow('Registry unavailable')
         expect(requestPackageSpy).toHaveBeenCalledWith(testPackageName)
       })
 
@@ -247,8 +233,7 @@ describe('CommandUpdate', () => {
               repository: 'test/test-package',
               engines: { inkdrop: '^6.0.0' }, // Incompatible with test version 5.0.0
               dist: {
-                tarball:
-                  'https://registry.test.com/test-package/-/test-package-1.0.0.tgz'
+                tarball: 'https://registry.test.com/test-package/-/test-package-1.0.0.tgz'
               }
             }
           }
@@ -278,9 +263,7 @@ describe('CommandUpdate', () => {
         const installError = new Error('Installation failed')
         parentRunSpy.mockRejectedValue(installError)
 
-        await expect(command.run(testPackageName)).rejects.toThrow(
-          'Installation failed'
-        )
+        await expect(command.run(testPackageName)).rejects.toThrow('Installation failed')
       })
     })
 

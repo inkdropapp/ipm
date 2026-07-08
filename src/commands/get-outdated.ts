@@ -1,6 +1,8 @@
 import { readdir, readFile } from 'fs/promises'
 import path from 'path'
+
 import semver from 'semver'
+
 import { Environment } from '../environment'
 import { logger } from '../logger'
 import { IPMRegistry } from '../registry'
@@ -37,10 +39,7 @@ export class CommandGetOutdated {
             })
           }
         } catch (error) {
-          logger.warn(
-            `Warning: Could not check updates for ${pkg.name}:`,
-            error
-          )
+          logger.warn(`Warning: Could not check updates for ${pkg.name}:`, error)
         }
       }
     } catch (error) {
@@ -51,9 +50,7 @@ export class CommandGetOutdated {
     return outdatedPackages
   }
 
-  private async getInstalledPackages(
-    packagesDir: string
-  ): Promise<PackageMetadata[]> {
+  private async getInstalledPackages(packagesDir: string): Promise<PackageMetadata[]> {
     const installedPackages: PackageMetadata[] = []
 
     try {
@@ -68,10 +65,7 @@ export class CommandGetOutdated {
           const packageJson: PackageMetadata = JSON.parse(packageJsonContent)
           installedPackages.push(packageJson)
         } catch (error) {
-          logger.warn(
-            `Warning: Could not read package.json for ${packageName}:`,
-            error
-          )
+          logger.warn(`Warning: Could not read package.json for ${packageName}:`, error)
         }
       }
     } catch (error) {

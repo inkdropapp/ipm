@@ -5,14 +5,16 @@
     "lib": ["ES2023"],
     "module": "ESNext",
     "skipLibCheck": true,
+    "types": ["node", "vitest/globals"],
     /* Module resolution */
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "moduleDetection": "force",
     /* Emit */
     "declaration": true,
+    "rootDir": ".",
     "outDir": "./lib",
     "noEmit": false,
     /* Linting */
@@ -20,8 +22,7 @@
     "noUnusedLocals": false,
     "noImplicitAny": false,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
-    "baseUrl": "./" /* Base directory to resolve non-absolute module names. */
+    "noFallthroughCasesInSwitch": true
   },
   "include": ["src", "tests"],
   "exclude": ["lib/**/*"]

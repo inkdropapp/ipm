@@ -15,17 +15,9 @@ describe('Real Get Outdated Test', () => {
     console.log('🔍 Starting real getOutdated test with math package...')
 
     // First, ensure we have the math package installed for testing
-    const realCommandInstall = new CommandInstall(
-      '5.9.0',
-      realEnvironment,
-      realRegistry
-    )
+    const realCommandInstall = new CommandInstall('5.9.0', realEnvironment, realRegistry)
 
-    const realCommandGetOutdated = new CommandGetOutdated(
-      '5.9.0',
-      realEnvironment,
-      realRegistry
-    )
+    const realCommandGetOutdated = new CommandGetOutdated('5.9.0', realEnvironment, realRegistry)
 
     const fs = await import('fs/promises')
     const path = await import('path')
@@ -60,7 +52,7 @@ describe('Real Get Outdated Test', () => {
     console.log(`📊 Found ${outdatedPackages.length} outdated package(s)`)
 
     // Check if math package is in the outdated list
-    const mathOutdated = outdatedPackages.find(pkg => pkg.name === 'math')
+    const mathOutdated = outdatedPackages.find((pkg) => pkg.name === 'math')
 
     if (mathOutdated) {
       console.log(`📈 Math package is outdated:`)
@@ -85,7 +77,7 @@ describe('Real Get Outdated Test', () => {
     // Log all outdated packages for debugging
     if (outdatedPackages.length > 0) {
       console.log('\n📋 All outdated packages:')
-      outdatedPackages.forEach(pkg => {
+      outdatedPackages.forEach((pkg) => {
         console.log(`   • ${pkg.name}: ${pkg.version} → ${pkg.latestVersion}`)
       })
     } else {
@@ -93,7 +85,7 @@ describe('Real Get Outdated Test', () => {
     }
 
     // Verify the structure of any outdated packages
-    outdatedPackages.forEach(pkg => {
+    outdatedPackages.forEach((pkg) => {
       expect(pkg).toHaveProperty('name')
       expect(pkg).toHaveProperty('version')
       expect(pkg).toHaveProperty('latestVersion')
@@ -113,11 +105,7 @@ describe('Real Get Outdated Test', () => {
     })
     const realRegistry = new IPMRegistry('5.9.0', 'https://api.inkdrop.app')
 
-    const realCommandGetOutdated = new CommandGetOutdated(
-      '5.9.0',
-      emptyEnvironment,
-      realRegistry
-    )
+    const realCommandGetOutdated = new CommandGetOutdated('5.9.0', emptyEnvironment, realRegistry)
 
     console.log('🔍 Testing getOutdated with no packages installed...')
 
@@ -137,11 +125,7 @@ describe('Real Get Outdated Test', () => {
     })
     const realRegistry = new IPMRegistry('5.9.0', 'https://api.inkdrop.app')
 
-    const realCommandGetOutdated = new CommandGetOutdated(
-      '5.9.0',
-      realEnvironment,
-      realRegistry
-    )
+    const realCommandGetOutdated = new CommandGetOutdated('5.9.0', realEnvironment, realRegistry)
 
     const fs = await import('fs/promises')
     const path = await import('path')
@@ -159,8 +143,7 @@ describe('Real Get Outdated Test', () => {
       name: 'math',
       version: '1.0.0', // Much older version than current
       main: './lib/index',
-      description:
-        'Add math syntax support to the editor and the preview (outdated test version)',
+      description: 'Add math syntax support to the editor and the preview (outdated test version)',
       repository: 'https://github.com/inkdropapp/inkdrop-math',
       engines: {
         inkdrop: '>=5.0.0'
@@ -168,14 +151,9 @@ describe('Real Get Outdated Test', () => {
     }
 
     const packageJsonPath = path.default.join(mathPackageDir, 'package.json')
-    await fs.writeFile(
-      packageJsonPath,
-      JSON.stringify(outdatedPackageJson, null, 2)
-    )
+    await fs.writeFile(packageJsonPath, JSON.stringify(outdatedPackageJson, null, 2))
 
-    console.log(
-      `📦 Created simulated outdated math package (v${outdatedPackageJson.version})`
-    )
+    console.log(`📦 Created simulated outdated math package (v${outdatedPackageJson.version})`)
 
     // Now test getOutdated
     const outdatedPackages = await realCommandGetOutdated.run()
@@ -183,7 +161,7 @@ describe('Real Get Outdated Test', () => {
     console.log(`📊 Found ${outdatedPackages.length} outdated package(s)`)
 
     // Math should definitely be outdated since we set it to v1.0.0
-    const mathOutdated = outdatedPackages.find(pkg => pkg.name === 'math')
+    const mathOutdated = outdatedPackages.find((pkg) => pkg.name === 'math')
 
     expect(mathOutdated).toBeDefined()
     expect(mathOutdated!.name).toBe('math')

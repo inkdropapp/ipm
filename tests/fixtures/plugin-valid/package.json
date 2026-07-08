@@ -6,12 +6,12 @@
   "bugs": {
     "url": "https://github.com/inkdropapp/inkdrop-vim/issues"
   },
+  "license": "MIT",
+  "author": "Takuya Matsuyama",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/inkdropapp/inkdrop-vim.git"
   },
-  "license": "MIT",
-  "author": "Takuya Matsuyama",
   "type": "commonjs",
   "main": "index.js",
   "scripts": {

@@ -1,8 +1,10 @@
 import { access, mkdir, readFile, rm, writeFile } from 'fs/promises'
 import path from 'path'
+
 import axios from 'axios'
 import semver from 'semver'
 import { extract } from 'tar'
+
 import { Environment } from '../environment'
 import { logger } from '../logger'
 import { IPMRegistry } from '../registry'
@@ -18,10 +20,7 @@ export class CommandInstall {
 
   async run(name: string, version?: string): Promise<void> {
     const pkg = await this.requestPackage(name)
-    const latestVersion = getLatestCompatibleVersion(
-      pkg,
-      this.installedInkdropVersion
-    )
+    const latestVersion = getLatestCompatibleVersion(pkg, this.installedInkdropVersion)
     let release = pkg.versions?.[latestVersion || '']
     if (!latestVersion || !release) {
       throw new Error(
@@ -58,11 +57,7 @@ export class CommandInstall {
 
       logger.info(`Installing ${pkg.name}@${pkg.version}...`)
 
-      await this.registry.downloadPackageTarball(
-        pkg.name,
-        pkg.version,
-        tarballPath
-      )
+      await this.registry.downloadPackageTarball(pkg.name, pkg.version, tarballPath)
 
       if (await this.pathExists(packageDir)) {
         logger.debug('Removing existing package directory at', packageDir)
@@ -94,10 +89,7 @@ export class CommandInstall {
     }
   }
 
-  private async extractTarball(
-    tarballPath: string,
-    extractDir: string
-  ): Promise<void> {
+  private async extractTarball(tarballPath: string, extractDir: string): Promise<void> {
     logger.debug(`Extracting tarball ${tarballPath} to ${extractDir}...`)
     await extract({
       file: tarballPath,
@@ -118,15 +110,10 @@ export class CommandInstall {
         const nodeModulesDir = path.join(packageDir, 'node_modules')
         await mkdir(nodeModulesDir, { recursive: true })
         const installed = new Set<string>()
-        const dependenciesToInstall: Array<{ name: string; version: string }> =
-          []
+        const dependenciesToInstall: Array<{ name: string; version: string }> = []
 
         // Collect all dependencies recursively first
-        await this.collectDependencies(
-          packageJson.dependencies,
-          dependenciesToInstall,
-          installed
-        )
+        await this.collectDependencies(packageJson.dependencies, dependenciesToInstall, installed)
 
         // Install all dependencies in the root node_modules
         for (const dep of dependenciesToInstall) {
@@ -135,10 +122,7 @@ export class CommandInstall {
       }
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
-        logger.warn(
-          `Warning: Could not read package.json for dependency installation:`,
-          error
-        )
+        logger.warn(`Warning: Could not read package.json for dependency installation:`, error)
       }
     }
   }
@@ -160,30 +144,17 @@ export class CommandInstall {
 
       // Fetch the package.json to get nested dependencies
       try {
-        const nestedDependencies = await this.fetchPackageDependencies(
-          depName,
-          depVersion
-        )
+        const nestedDependencies = await this.fetchPackageDependencies(depName, depVersion)
         if (nestedDependencies) {
-          await this.collectDependencies(
-            nestedDependencies,
-            dependenciesToInstall,
-            installed
-          )
+          await this.collectDependencies(nestedDependencies, dependenciesToInstall, installed)
         }
       } catch (error) {
-        logger.warn(
-          `Warning: Could not fetch dependencies for ${depName}@${depVersion}:`,
-          error
-        )
+        logger.warn(`Warning: Could not fetch dependencies for ${depName}@${depVersion}:`, error)
       }
     }
   }
 
-  private async resolveVersion(
-    name: string,
-    versionRange: string
-  ): Promise<string> {
+  private async resolveVersion(name: string, versionRange: string): Promise<string> {
     try {
       // If it's already a specific version without range specifiers, return as-is
       if (semver.valid(versionRange)) {
@@ -202,19 +173,14 @@ export class CommandInstall {
 
       const packageData = response.data
       const availableVersions = Object.keys(packageData.versions || {})
-        .filter(v => semver.valid(v))
+        .filter((v) => semver.valid(v))
         .sort(semver.rcompare) // Sort in descending order
 
       // Find the highest version that satisfies the range
-      const resolvedVersion = semver.maxSatisfying(
-        availableVersions,
-        versionRange
-      )
+      const resolvedVersion = semver.maxSatisfying(availableVersions, versionRange)
 
       if (!resolvedVersion) {
-        throw new Error(
-          `No version found that satisfies range ${versionRange} for package ${name}`
-        )
+        throw new Error(`No version found that satisfies range ${versionRange} for package ${name}`)
       }
 
       return resolvedVersion
@@ -268,10 +234,7 @@ export class CommandInstall {
         : name
 
       const tarballUrl = `https://registry.npmjs.org/${name}/-/${packageFileName}-${resolvedVersion}.tgz`
-      const tarballPath = path.join(
-        tempDir,
-        `${packageFileName}-${resolvedVersion}.tgz`
-      )
+      const tarballPath = path.join(tempDir, `${packageFileName}-${resolvedVersion}.tgz`)
 
       logger.info(`  Installing dependency ${name}@${resolvedVersion}...`)
 
@@ -291,10 +254,7 @@ export class CommandInstall {
       await this.extractTarball(tarballPath, depDir)
       await rm(tarballPath, { force: true })
     } catch (error) {
-      logger.warn(
-        `Warning: Failed to install dependency ${name}@${version}:`,
-        error
-      )
+      logger.warn(`Warning: Failed to install dependency ${name}@${version}:`, error)
     }
   }
 

@@ -1,12 +1,10 @@
 import { writeFile } from 'fs/promises'
+
 import axios from 'axios'
-import { logger } from './logger'
-import type {
-  PackageInfo,
-  PackageSortOptions,
-  PackageVersionInfo
-} from './types'
 import type { AxiosInstance } from 'axios'
+
+import { logger } from './logger'
+import type { PackageInfo, PackageSortOptions, PackageVersionInfo } from './types'
 
 export class IPMRegistry {
   apiClient: AxiosInstance
@@ -30,19 +28,14 @@ export class IPMRegistry {
    * from each version's `engines`.
    */
   async getPackageInfo(name: string): Promise<PackageInfo> {
-    return this.apiClient.get(name).then(res => res.data)
+    return this.apiClient.get(name).then((res) => res.data)
   }
 
   /**
    * Get information about a specific version of a package
    */
-  async getPackageVersionInfo(
-    name: string,
-    version: string
-  ): Promise<PackageVersionInfo> {
-    return this.apiClient
-      .get(`${name}/versions/${version}`)
-      .then(res => res.data)
+  async getPackageVersionInfo(name: string, version: string): Promise<PackageVersionInfo> {
+    return this.apiClient.get(`${name}/versions/${version}`).then((res) => res.data)
   }
 
   /**
@@ -51,17 +44,13 @@ export class IPMRegistry {
    * Hits the v2 tarball endpoint, which redirects to the storage URL; axios
    * follows the redirect and returns the binary payload.
    */
-  async downloadPackageTarball(
-    name: string,
-    version: string,
-    destPath: string
-  ): Promise<void> {
+  async downloadPackageTarball(name: string, version: string, destPath: string): Promise<void> {
     logger.debug(`Downloading tarball for ${name}@${version} to ${destPath}...`)
     const data = await this.apiClient
       .get(`${name}/versions/${version}/tarball`, {
         responseType: 'arraybuffer'
       })
-      .then(res => res.data)
+      .then((res) => res.data)
 
     await writeFile(destPath, Buffer.from(data))
   }
@@ -77,7 +66,7 @@ export class IPMRegistry {
           q
         }
       })
-      .then(res => res.data)
+      .then((res) => res.data)
   }
 
   async getPackages(opts?: {
@@ -94,13 +83,10 @@ export class IPMRegistry {
           theme: theme ? 1 : ''
         }
       })
-      .then(res => res.data)
+      .then((res) => res.data)
   }
 
-  getPopularPackages(opts?: {
-    page: number
-    theme: boolean
-  }): Promise<PackageInfo[]> {
+  getPopularPackages(opts?: { page: number; theme: boolean }): Promise<PackageInfo[]> {
     return this.getPackages({
       ...(opts || {
         page: 0,
@@ -110,10 +96,7 @@ export class IPMRegistry {
     })
   }
 
-  getNewPackages(opts?: {
-    page: number
-    theme: boolean
-  }): Promise<PackageInfo[]> {
+  getNewPackages(opts?: { page: number; theme: boolean }): Promise<PackageInfo[]> {
     return this.getPackages({
       ...(opts || {
         page: 0,

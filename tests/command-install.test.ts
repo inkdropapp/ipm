@@ -1,7 +1,9 @@
 import { access, mkdir, readFile, rm, writeFile } from 'fs/promises'
 import path from 'path'
-import { jest } from '@jest/globals'
+
 import { extract } from 'tar'
+import { vi, type Mocked, type MockedFunction } from 'vitest'
+
 import { CommandInstall } from '../src/commands/install'
 import { Environment } from '../src/environment'
 import { logger } from '../src/logger'
@@ -9,18 +11,18 @@ import { IPMRegistry } from '../src/registry'
 import { PackageInfo, PackageVersionInfo } from '../src/types'
 import { getLatestCompatibleVersion } from '../src/utils'
 
-jest.mock('fs/promises')
-jest.mock('tar')
-jest.mock('../src/logger')
-jest.mock('../src/registry')
+vi.mock('fs/promises')
+vi.mock('tar')
+vi.mock('../src/logger')
+vi.mock('../src/registry')
 
-const mockedMkdir = mkdir as jest.MockedFunction<typeof mkdir>
-const mockedReadFile = readFile as jest.MockedFunction<typeof readFile>
-const mockedRm = rm as jest.MockedFunction<typeof rm>
-const mockedWriteFile = writeFile as jest.MockedFunction<typeof writeFile>
-const mockedAccess = access as jest.MockedFunction<typeof access>
-const mockedExtract = extract as jest.MockedFunction<any>
-const mockedLogger = logger as jest.Mocked<typeof logger>
+const mockedMkdir = mkdir as MockedFunction<typeof mkdir>
+const mockedReadFile = readFile as MockedFunction<typeof readFile>
+const mockedRm = rm as MockedFunction<typeof rm>
+const mockedWriteFile = writeFile as MockedFunction<typeof writeFile>
+const mockedAccess = access as MockedFunction<typeof access>
+const mockedExtract = extract as MockedFunction<any>
+const mockedLogger = logger as Mocked<typeof logger>
 
 // Mock data based on real math package from api.inkdrop.app
 const mockMathPackageInfo: PackageInfo = {
@@ -55,8 +57,7 @@ const mockMathPackageInfo: PackageInfo = {
         katex: '^0.16.10'
       },
       dist: {
-        tarball:
-          'https://api.inkdrop.app/v1/packages/math/versions/1.6.0/tarball'
+        tarball: 'https://api.inkdrop.app/v1/packages/math/versions/1.6.0/tarball'
       }
     },
     '1.6.1': {
@@ -73,8 +74,7 @@ const mockMathPackageInfo: PackageInfo = {
         katex: '^0.16.21'
       },
       dist: {
-        tarball:
-          'https://api.inkdrop.app/v1/packages/math/versions/1.6.1/tarball'
+        tarball: 'https://api.inkdrop.app/v1/packages/math/versions/1.6.1/tarball'
       }
     },
     '999.0.0': {
@@ -87,8 +87,7 @@ const mockMathPackageInfo: PackageInfo = {
         inkdrop: '>=999.0.0 <1000.0.0' // Incompatible version for testing
       },
       dist: {
-        tarball:
-          'https://api.inkdrop.app/v1/packages/math/versions/999.0.0/tarball'
+        tarball: 'https://api.inkdrop.app/v1/packages/math/versions/999.0.0/tarball'
       }
     }
   }
@@ -97,7 +96,7 @@ const mockMathPackageInfo: PackageInfo = {
 describe('CommandInstall', () => {
   let commandInstall: CommandInstall
   let mockEnvironment: Environment
-  let mockRegistry: jest.Mocked<IPMRegistry>
+  let mockRegistry: Mocked<IPMRegistry>
   const testInkdropVersion = '5.9.0'
   let testInkdropDir: string
   let testCacheDir: string
@@ -111,22 +110,18 @@ describe('CommandInstall', () => {
         : path.join(process.env.HOME || '/home/user', '.config', 'inkdrop')
     testCacheDir = path.join(testInkdropDir, '.ipm')
 
-    jest
-      .spyOn(mockEnvironment, 'getInkdropDirectory')
-      .mockReturnValue(testInkdropDir)
-    jest
-      .spyOn(mockEnvironment, 'getCacheDirectory')
-      .mockReturnValue(testCacheDir)
+    vi.spyOn(mockEnvironment, 'getInkdropDirectory').mockReturnValue(testInkdropDir)
+    vi.spyOn(mockEnvironment, 'getCacheDirectory').mockReturnValue(testCacheDir)
 
     // Create mocked registry
     mockRegistry = {
-      getPackageInfo: jest.fn(),
-      getPackageVersionInfo: jest.fn(),
-      downloadPackageTarball: jest.fn(),
-      search: jest.fn(),
-      getPackages: jest.fn(),
-      getPopularPackages: jest.fn(),
-      getNewPackages: jest.fn()
+      getPackageInfo: vi.fn(),
+      getPackageVersionInfo: vi.fn(),
+      downloadPackageTarball: vi.fn(),
+      search: vi.fn(),
+      getPackages: vi.fn(),
+      getPopularPackages: vi.fn(),
+      getNewPackages: vi.fn()
     } as any
 
     // Setup default mock responses
@@ -142,11 +137,7 @@ describe('CommandInstall', () => {
 
     mockRegistry.downloadPackageTarball.mockResolvedValue(undefined)
 
-    commandInstall = new CommandInstall(
-      testInkdropVersion,
-      mockEnvironment,
-      mockRegistry
-    )
+    commandInstall = new CommandInstall(testInkdropVersion, mockEnvironment, mockRegistry)
 
     // Setup default mocks
     mockedMkdir.mockResolvedValue(undefined)
@@ -157,7 +148,7 @@ describe('CommandInstall', () => {
   })
 
   afterEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   describe('run', () => {
@@ -173,24 +164,18 @@ describe('CommandInstall', () => {
       )
 
       // Verify file system operations were performed
-      expect(mockedMkdir).toHaveBeenCalledWith(
-        path.join(testInkdropDir, 'packages'),
-        {
-          recursive: true
-        }
-      )
+      expect(mockedMkdir).toHaveBeenCalledWith(path.join(testInkdropDir, 'packages'), {
+        recursive: true
+      })
       expect(mockedMkdir).toHaveBeenCalledWith(path.join(testCacheDir, 'tmp'), {
         recursive: true
       })
-      expect(mockedMkdir).toHaveBeenCalledWith(
-        path.join(testInkdropDir, 'packages', 'math'),
-        { recursive: true }
-      )
+      expect(mockedMkdir).toHaveBeenCalledWith(path.join(testInkdropDir, 'packages', 'math'), {
+        recursive: true
+      })
       expect(mockedExtract).toHaveBeenCalled()
       expect(mockedLogger.info).toHaveBeenCalledWith('Installing math@1.6.1...')
-      expect(mockedLogger.info).toHaveBeenCalledWith(
-        'Successfully installed math@1.6.1'
-      )
+      expect(mockedLogger.info).toHaveBeenCalledWith('Successfully installed math@1.6.1')
     })
 
     it('should install specific version when provided', async () => {
@@ -203,9 +188,7 @@ describe('CommandInstall', () => {
         path.join(testCacheDir, 'tmp', 'math-1.6.0.tgz')
       )
       expect(mockedLogger.info).toHaveBeenCalledWith('Installing math@1.6.0...')
-      expect(mockedLogger.info).toHaveBeenCalledWith(
-        'Successfully installed math@1.6.0'
-      )
+      expect(mockedLogger.info).toHaveBeenCalledWith('Successfully installed math@1.6.0')
     })
 
     it('should throw error for incompatible version', async () => {
@@ -215,18 +198,15 @@ describe('CommandInstall', () => {
     })
 
     it('should throw error for non-existent package', async () => {
-      await expect(
-        commandInstall.run('non-existent-package-12345')
-      ).rejects.toThrow('Package not found')
+      await expect(commandInstall.run('non-existent-package-12345')).rejects.toThrow(
+        'Package not found'
+      )
     })
   })
 
   describe('getLatestCompatibleVersion', () => {
     it('should return compatible version for current Inkdrop version', () => {
-      const latestVersion = getLatestCompatibleVersion(
-        mockMathPackageInfo,
-        testInkdropVersion
-      )
+      const latestVersion = getLatestCompatibleVersion(mockMathPackageInfo, testInkdropVersion)
 
       expect(latestVersion).toBe('1.6.1') // Latest compatible version
       expect(mockRegistry.getPackageInfo).not.toHaveBeenCalled() // This test doesn't need API call
@@ -265,10 +245,7 @@ describe('CommandInstall', () => {
         }
       }
 
-      const result = getLatestCompatibleVersion(
-        mockPackageInfo,
-        testInkdropVersion
-      )
+      const result = getLatestCompatibleVersion(mockPackageInfo, testInkdropVersion)
       expect(result).toBeNull()
     })
   })
@@ -288,27 +265,22 @@ describe('CommandInstall', () => {
         katex: '^0.16.21'
       },
       dist: {
-        tarball:
-          'https://api.inkdrop.app/v1/packages/math/versions/1.6.1/tarball'
+        tarball: 'https://api.inkdrop.app/v1/packages/math/versions/1.6.1/tarball'
       }
     }
 
     it('should create necessary directories and extract tarball', async () => {
       await commandInstall.install(mockPackageVersionInfo)
 
-      expect(mockedMkdir).toHaveBeenCalledWith(
-        path.join(testInkdropDir, 'packages'),
-        {
-          recursive: true
-        }
-      )
+      expect(mockedMkdir).toHaveBeenCalledWith(path.join(testInkdropDir, 'packages'), {
+        recursive: true
+      })
       expect(mockedMkdir).toHaveBeenCalledWith(path.join(testCacheDir, 'tmp'), {
         recursive: true
       })
-      expect(mockedMkdir).toHaveBeenCalledWith(
-        path.join(testInkdropDir, 'packages', 'math'),
-        { recursive: true }
-      )
+      expect(mockedMkdir).toHaveBeenCalledWith(path.join(testInkdropDir, 'packages', 'math'), {
+        recursive: true
+      })
       expect(mockedExtract).toHaveBeenCalledWith({
         file: path.join(testCacheDir, 'tmp', 'math-1.6.1.tgz'),
         cwd: path.join(testInkdropDir, 'packages', 'math'),
@@ -322,13 +294,10 @@ describe('CommandInstall', () => {
 
       await commandInstall.install(mockPackageVersionInfo)
 
-      expect(mockedRm).toHaveBeenCalledWith(
-        path.join(testInkdropDir, 'packages', 'math'),
-        {
-          recursive: true,
-          force: true
-        }
-      )
+      expect(mockedRm).toHaveBeenCalledWith(path.join(testInkdropDir, 'packages', 'math'), {
+        recursive: true,
+        force: true
+      })
     })
 
     it('should install npm dependencies when package.json exists', async () => {
@@ -361,40 +330,32 @@ describe('CommandInstall', () => {
       mockedReadFile.mockRejectedValueOnce(error)
 
       // Should not throw an error
-      await expect(
-        commandInstall.install(mockPackageVersionInfo)
-      ).resolves.not.toThrow()
+      await expect(commandInstall.install(mockPackageVersionInfo)).resolves.not.toThrow()
     })
 
     it('should clean up tarball after successful installation', async () => {
       await commandInstall.install(mockPackageVersionInfo)
 
-      expect(mockedRm).toHaveBeenCalledWith(
-        path.join(testCacheDir, 'tmp', 'math-1.6.1.tgz'),
-        { force: true }
-      )
+      expect(mockedRm).toHaveBeenCalledWith(path.join(testCacheDir, 'tmp', 'math-1.6.1.tgz'), {
+        force: true
+      })
     })
 
     it('should log installation progress', async () => {
       await commandInstall.install(mockPackageVersionInfo)
 
       expect(mockedLogger.info).toHaveBeenCalledWith('Installing math@1.6.1...')
-      expect(mockedLogger.info).toHaveBeenCalledWith(
-        'Successfully installed math@1.6.1'
-      )
+      expect(mockedLogger.info).toHaveBeenCalledWith('Successfully installed math@1.6.1')
     })
 
     it('should handle installation errors and log them', async () => {
       const error = new Error('Installation failed')
       mockedExtract.mockRejectedValueOnce(error)
 
-      await expect(
-        commandInstall.install(mockPackageVersionInfo)
-      ).rejects.toThrow('Installation failed')
-      expect(mockedLogger.error).toHaveBeenCalledWith(
-        'Failed to install math@1.6.1:',
-        error
+      await expect(commandInstall.install(mockPackageVersionInfo)).rejects.toThrow(
+        'Installation failed'
       )
+      expect(mockedLogger.error).toHaveBeenCalledWith('Failed to install math@1.6.1:', error)
     })
   })
 
@@ -419,9 +380,9 @@ describe('CommandInstall', () => {
       }
       mockRegistry.getPackageInfo.mockResolvedValueOnce(packageWithoutReleases)
 
-      await expect(
-        commandInstall.requestPackage('no-releases-package')
-      ).rejects.toThrow('No releases available for no-releases-package')
+      await expect(commandInstall.requestPackage('no-releases-package')).rejects.toThrow(
+        'No releases available for no-releases-package'
+      )
     })
 
     it('should throw error for non-existent package', async () => {
@@ -458,20 +419,15 @@ describe('CommandInstall', () => {
       )
 
       // Verify the complete flow
-      expect(mockedMkdir).toHaveBeenCalledWith(
-        path.join(testInkdropDir, 'packages'),
-        {
-          recursive: true
-        }
-      )
+      expect(mockedMkdir).toHaveBeenCalledWith(path.join(testInkdropDir, 'packages'), {
+        recursive: true
+      })
       expect(mockedMkdir).toHaveBeenCalledWith(path.join(testCacheDir, 'tmp'), {
         recursive: true
       })
       expect(mockedExtract).toHaveBeenCalled()
       expect(mockedLogger.info).toHaveBeenCalledWith('Installing math@1.6.1...')
-      expect(mockedLogger.info).toHaveBeenCalledWith(
-        'Successfully installed math@1.6.1'
-      )
+      expect(mockedLogger.info).toHaveBeenCalledWith('Successfully installed math@1.6.1')
 
       // Verify dependency installation was attempted
       expect(mockedReadFile).toHaveBeenCalledWith(

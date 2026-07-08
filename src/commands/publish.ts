@@ -2,14 +2,16 @@ import { execFile } from 'child_process'
 import * as fs from 'fs/promises'
 import path from 'path'
 import { promisify } from 'util'
+
 import axios, { isAxiosError } from 'axios'
+import type { AxiosInstance } from 'axios'
 import FormData from 'form-data'
 import * as tar from 'tar'
+
 import { PACKAGE_MAX_SIZE } from '../consts'
 import { Environment } from '../environment'
 import { logger } from '../logger'
 import { IPMRegistry } from '../registry'
-import type { AxiosInstance } from 'axios'
 
 /**
  * Command to publish a new Inkdrop package
@@ -49,9 +51,7 @@ export class CommandPublish {
     const repoDir = packagePath || process.cwd()
 
     try {
-      const pkg = JSON.parse(
-        await fs.readFile(path.join(repoDir, 'package.json'), 'utf-8')
-      )
+      const pkg = JSON.parse(await fs.readFile(path.join(repoDir, 'package.json'), 'utf-8'))
       const repository = this.getRepositoryId(pkg)
 
       logger.info(`Publishing ${pkg.name}@${pkg.version}...`)
@@ -148,8 +148,7 @@ export class CommandPublish {
 
     const execFileAsync = promisify(execFile)
     const shell = process.platform === 'win32' ? 'cmd' : '/bin/sh'
-    const shellArgs =
-      process.platform === 'win32' ? ['/c', script] : ['-c', script]
+    const shellArgs = process.platform === 'win32' ? ['/c', script] : ['-c', script]
 
     try {
       const { stdout, stderr } = await execFileAsync(shell, shellArgs, {
@@ -197,7 +196,7 @@ export class CommandPublish {
         gzip: true,
         file: tarballPath,
         cwd: repoDir,
-        filter: path => {
+        filter: (path) => {
           const normalizedPath = path.replace(/\\/g, '/')
 
           for (const pattern of excludePatterns) {
@@ -290,12 +289,9 @@ export class CommandPublish {
     } catch (error: any) {
       if (isAxiosError(error) && error.response) {
         const { message = '' } = error.response.data || {}
-        throw new Error(
-          `Upload failed: ${error.response.status} - ${message}`,
-          {
-            cause: error
-          }
-        )
+        throw new Error(`Upload failed: ${error.response.status} - ${message}`, {
+          cause: error
+        })
       }
       throw error
     }

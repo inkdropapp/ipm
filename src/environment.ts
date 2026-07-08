@@ -1,4 +1,5 @@
 import path from 'path'
+
 import { IPMOptions } from './types'
 
 export class Environment {
@@ -19,9 +20,7 @@ export class Environment {
    */
   getInkdropDirectory() {
     const pathToHome = this.options.appHomePath || process.env.INKDROP_HOME
-    return pathToHome != null
-      ? pathToHome
-      : path.join(this.getAppDataPath(), 'inkdrop')
+    return pathToHome != null ? pathToHome : path.join(this.getAppDataPath(), 'inkdrop')
   }
 
   getCacheDirectory() {
@@ -32,11 +31,7 @@ export class Environment {
     if (this.options.appDataPath) return this.options.appDataPath
     switch (process.platform) {
       case 'darwin':
-        return path.join(
-          process.env.HOME || '',
-          'Library',
-          'Application Support'
-        )
+        return path.join(process.env.HOME || '', 'Library', 'Application Support')
       case 'linux':
         return path.join(process.env.HOME || '', '.config')
       case 'win32':
@@ -57,10 +52,8 @@ export class Environment {
   }
 
   getInkdropAccessKey() {
-    const accessKeyId =
-      process.env.INKDROP_ACCESS_KEY_ID || this.options.accessKeyId
-    const secretAccessKey =
-      process.env.INKDROP_SECRET_ACCESS_KEY || this.options.secretAccessKey
+    const accessKeyId = process.env.INKDROP_ACCESS_KEY_ID || this.options.accessKeyId
+    const secretAccessKey = process.env.INKDROP_SECRET_ACCESS_KEY || this.options.secretAccessKey
     return accessKeyId && secretAccessKey
       ? {
           accessKeyId,

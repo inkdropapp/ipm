@@ -1,28 +1,30 @@
 import { writeFile } from 'fs/promises'
-import { jest } from '@jest/globals'
+
 import axios from 'axios'
+import { vi, type Mocked, type MockedFunction } from 'vitest'
+
 import { IPMRegistry } from '../src/registry'
 
-jest.mock('axios')
-jest.mock('fs/promises')
+vi.mock('axios')
+vi.mock('fs/promises')
 
-const mockedAxios = axios as jest.Mocked<typeof axios>
-const mockedWriteFile = writeFile as jest.MockedFunction<typeof writeFile>
+const mockedAxios = axios as Mocked<typeof axios>
+const mockedWriteFile = writeFile as MockedFunction<typeof writeFile>
 
 describe('IPMRegistry', () => {
   let registry: IPMRegistry
-  let mockAxiosInstance: jest.Mocked<any>
+  let mockAxiosInstance: Mocked<any>
 
   beforeEach(() => {
     mockAxiosInstance = {
-      get: jest.fn()
+      get: vi.fn()
     }
     mockedAxios.create.mockReturnValue(mockAxiosInstance)
     registry = new IPMRegistry('5.9.0', 'https://api.inkdrop.app')
   })
 
   afterEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   describe('constructor', () => {
@@ -67,9 +69,7 @@ describe('IPMRegistry', () => {
       const error = new Error('Package not found')
       mockAxiosInstance.get.mockRejectedValue(error)
 
-      await expect(registry.getPackageInfo('nonexistent')).rejects.toThrow(
-        'Package not found'
-      )
+      await expect(registry.getPackageInfo('nonexistent')).rejects.toThrow('Package not found')
     })
   })
 
@@ -82,21 +82,15 @@ describe('IPMRegistry', () => {
         description: 'Test package',
         repository: 'test/repo',
         dist: {
-          tarball:
-            'https://api.inkdrop.app/v1/packages/test-package/versions/1.0.0/tarball'
+          tarball: 'https://api.inkdrop.app/v1/packages/test-package/versions/1.0.0/tarball'
         }
       }
 
       mockAxiosInstance.get.mockResolvedValue({ data: mockVersionInfo })
 
-      const result = await registry.getPackageVersionInfo(
-        'test-package',
-        '1.0.0'
-      )
+      const result = await registry.getPackageVersionInfo('test-package', '1.0.0')
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith(
-        'test-package/versions/1.0.0'
-      )
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith('test-package/versions/1.0.0')
       expect(result).toEqual(mockVersionInfo)
     })
 
@@ -104,9 +98,9 @@ describe('IPMRegistry', () => {
       const error = new Error('Version not found')
       mockAxiosInstance.get.mockRejectedValue(error)
 
-      await expect(
-        registry.getPackageVersionInfo('test-package', '99.0.0')
-      ).rejects.toThrow('Version not found')
+      await expect(registry.getPackageVersionInfo('test-package', '99.0.0')).rejects.toThrow(
+        'Version not found'
+      )
     })
   })
 
@@ -116,18 +110,11 @@ describe('IPMRegistry', () => {
       mockAxiosInstance.get.mockResolvedValueOnce({ data: mockTarballData })
       mockedWriteFile.mockResolvedValue(undefined)
 
-      await registry.downloadPackageTarball(
-        'test-package',
-        '1.0.0',
-        '/tmp/test-package-1.0.0.tgz'
-      )
+      await registry.downloadPackageTarball('test-package', '1.0.0', '/tmp/test-package-1.0.0.tgz')
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith(
-        'test-package/versions/1.0.0/tarball',
-        {
-          responseType: 'arraybuffer'
-        }
-      )
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith('test-package/versions/1.0.0/tarball', {
+        responseType: 'arraybuffer'
+      })
       expect(mockedWriteFile).toHaveBeenCalledWith(
         '/tmp/test-package-1.0.0.tgz',
         Buffer.from(mockTarballData)
@@ -139,11 +126,7 @@ describe('IPMRegistry', () => {
       mockAxiosInstance.get.mockRejectedValue(error)
 
       await expect(
-        registry.downloadPackageTarball(
-          'test-package',
-          '1.0.0',
-          '/tmp/test.tgz'
-        )
+        registry.downloadPackageTarball('test-package', '1.0.0', '/tmp/test.tgz')
       ).rejects.toThrow('Download failed')
     })
 
@@ -153,11 +136,7 @@ describe('IPMRegistry', () => {
       mockedWriteFile.mockRejectedValue(new Error('Write failed'))
 
       await expect(
-        registry.downloadPackageTarball(
-          'test-package',
-          '1.0.0',
-          '/tmp/test.tgz'
-        )
+        registry.downloadPackageTarball('test-package', '1.0.0', '/tmp/test.tgz')
       ).rejects.toThrow('Write failed')
     })
   })

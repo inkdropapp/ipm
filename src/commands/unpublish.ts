@@ -1,8 +1,9 @@
 import axios, { isAxiosError } from 'axios'
+import type { AxiosInstance } from 'axios'
+
 import { Environment } from '../environment'
 import { logger } from '../logger'
 import { IPMRegistry } from '../registry'
-import type { AxiosInstance } from 'axios'
 
 /**
  * Command to unpublish a package or package version from the registry.
@@ -63,19 +64,14 @@ export class CommandUnpublish {
     }
   }
 
-  private async validatePackageExists(
-    name: string,
-    version?: string
-  ): Promise<void> {
+  private async validatePackageExists(name: string, version?: string): Promise<void> {
     try {
       const packageInfo = await this.registry.getPackageInfo(name)
 
       if (version) {
         // Check if the specific version exists
         if (!packageInfo.versions || !packageInfo.versions[version]) {
-          throw new Error(
-            `Version ${version} does not exist for package ${name}`
-          )
+          throw new Error(`Version ${version} does not exist for package ${name}`)
         }
       }
     } catch (error: any) {
