@@ -1,0 +1,3 @@
+# Normalize line endings to LF on checkout across all platforms so the
+# oxfmt format check passes on Windows CI (oxfmt enforces LF).
+* text=auto eol=lf
