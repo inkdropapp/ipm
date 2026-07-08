@@ -15,7 +15,7 @@ export class IPMRegistry {
   constructor(installedInkdropVersion: string, apiBaseUrl: string) {
     this.installedInkdropVersion = installedInkdropVersion
     this.apiClient = axios.create({
-      baseURL: `${apiBaseUrl}/v1/packages`,
+      baseURL: `${apiBaseUrl}/v2/packages`,
       headers: {
         'X-CLIENT-VERSION': this.installedInkdropVersion
       }
@@ -23,7 +23,11 @@ export class IPMRegistry {
   }
 
   /**
-   * Get a package from the registry
+   * Get a package from the registry.
+   *
+   * Returns 404 when no version is compatible with the client's Inkdrop major.
+   * Versions are returned as-is; the caller resolves the installable version
+   * from each version's `engines`.
    */
   async getPackageInfo(name: string): Promise<PackageInfo> {
     return this.apiClient.get(name).then(res => res.data)
@@ -42,44 +46,35 @@ export class IPMRegistry {
   }
 
   /**
-   * Download package tarball for a specific version and save to file
+   * Download a package tarball for a specific version and save it to a file.
+   *
+   * Hits the v2 tarball endpoint, which redirects to the storage URL; axios
+   * follows the redirect and returns the binary payload.
    */
   async downloadPackageTarball(
     name: string,
     version: string,
     destPath: string
   ): Promise<void> {
-    const versionInfo = await this.getPackageVersionInfo(name, version)
-    const tarballUrl = versionInfo?.dist?.tarball
-    logger.debug(`Downloading tarball from ${tarballUrl} to ${destPath}...`)
-    if (tarballUrl) {
-      const data = await this.apiClient
-        .get(tarballUrl, {
-          responseType: 'arraybuffer'
-        })
-        .then(res => res.data)
+    logger.debug(`Downloading tarball for ${name}@${version} to ${destPath}...`)
+    const data = await this.apiClient
+      .get(`${name}/versions/${version}/tarball`, {
+        responseType: 'arraybuffer'
+      })
+      .then(res => res.data)
 
-      await writeFile(destPath, Buffer.from(data))
-    } else {
-      throw new Error(`Tarball URL not found for ${name}@${version}`)
-    }
+    await writeFile(destPath, Buffer.from(data))
   }
 
   /**
-   * Search packages with keyword
+   * Search packages with a keyword
    */
-  async search(params: {
-    q: string
-    sort?: PackageSortOptions | 'score'
-    direction?: string
-  }): Promise<PackageInfo[]> {
-    const { sort = 'score', q = '', direction = 'desc' } = params || {}
+  async search(params: { q: string }): Promise<PackageInfo[]> {
+    const { q = '' } = params || {}
     return this.apiClient
       .get(`/search`, {
         params: {
-          sort,
-          q,
-          direction
+          q
         }
       })
       .then(res => res.data)

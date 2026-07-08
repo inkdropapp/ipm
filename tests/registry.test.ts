@@ -28,7 +28,7 @@ describe('IPMRegistry', () => {
   describe('constructor', () => {
     it('should create axios instance with correct baseURL', () => {
       expect(mockedAxios.create).toHaveBeenCalledWith({
-        baseURL: 'https://api.inkdrop.app/v1/packages',
+        baseURL: 'https://api.inkdrop.app/v2/packages',
         headers: {
           'X-CLIENT-VERSION': '5.9.0'
         }
@@ -111,20 +111,9 @@ describe('IPMRegistry', () => {
   })
 
   describe('downloadPackageTarball', () => {
-    const mockVersionInfo = {
-      name: 'test-package',
-      version: '1.0.0',
-      dist: {
-        tarball:
-          'https://api.inkdrop.app/v2/packages/test-package/versions/1.0.0/tarball'
-      }
-    }
-
     it('should download and save tarball to file', async () => {
       const mockTarballData = new ArrayBuffer(1024)
-      mockAxiosInstance.get
-        .mockResolvedValueOnce({ data: mockVersionInfo })
-        .mockResolvedValueOnce({ data: mockTarballData })
+      mockAxiosInstance.get.mockResolvedValueOnce({ data: mockTarballData })
       mockedWriteFile.mockResolvedValue(undefined)
 
       await registry.downloadPackageTarball(
@@ -133,13 +122,8 @@ describe('IPMRegistry', () => {
         '/tmp/test-package-1.0.0.tgz'
       )
 
-      expect(mockAxiosInstance.get).toHaveBeenNthCalledWith(
-        1,
-        'test-package/versions/1.0.0'
-      )
-      expect(mockAxiosInstance.get).toHaveBeenNthCalledWith(
-        2,
-        'https://api.inkdrop.app/v2/packages/test-package/versions/1.0.0/tarball',
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith(
+        'test-package/versions/1.0.0/tarball',
         {
           responseType: 'arraybuffer'
         }
@@ -165,9 +149,7 @@ describe('IPMRegistry', () => {
 
     it('should handle file write errors', async () => {
       const mockTarballData = new ArrayBuffer(1024)
-      mockAxiosInstance.get
-        .mockResolvedValueOnce({ data: mockVersionInfo })
-        .mockResolvedValueOnce({ data: mockTarballData })
+      mockAxiosInstance.get.mockResolvedValueOnce({ data: mockTarballData })
       mockedWriteFile.mockRejectedValue(new Error('Write failed'))
 
       await expect(
@@ -181,7 +163,7 @@ describe('IPMRegistry', () => {
   })
 
   describe('search', () => {
-    it('should search packages with default parameters', async () => {
+    it('should search packages by keyword', async () => {
       const mockSearchResults = [
         {
           name: 'package1',
@@ -207,31 +189,10 @@ describe('IPMRegistry', () => {
 
       expect(mockAxiosInstance.get).toHaveBeenCalledWith('/search', {
         params: {
-          sort: 'score',
-          q: 'test',
-          direction: 'desc'
+          q: 'test'
         }
       })
       expect(result).toEqual(mockSearchResults)
-    })
-
-    it('should search packages with custom parameters', async () => {
-      const mockSearchResults = []
-      mockAxiosInstance.get.mockResolvedValue({ data: mockSearchResults })
-
-      await registry.search({
-        q: 'markdown',
-        sort: 'majority',
-        direction: 'asc'
-      })
-
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/search', {
-        params: {
-          sort: 'majority',
-          q: 'markdown',
-          direction: 'asc'
-        }
-      })
     })
   })
 

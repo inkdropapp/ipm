@@ -142,17 +142,15 @@ const versionInfo = await ipm.registry.getPackageVersionInfo(
 - `name`: The name of the package
 - `version`: The specific version to get information for
 
-### `registry.search(params: { q: string, sort?: string, direction?: string }): Promise<PackageInfo[]>`
+### `registry.search(params: { q: string }): Promise<PackageInfo[]>`
 
-Search packages with keyword:
+Search packages with a keyword. Results are filtered to versions compatible with the client's Inkdrop major.
 
 ```ts
 const searchResults = await ipm.registry.search({ q: 'markdown' })
 ```
 
 - `q`: Search query string
-- `sort`: Sort order ('score', 'majority', 'recency', 'newness', 'theme-majority', 'theme-recency', 'theme-newness')
-- `direction`: Sort direction ('desc' or 'asc')
 
 ### `registry.getPackages(opts?: { sort: string, page: number, theme: boolean }): Promise<PackageInfo[]>`
 
