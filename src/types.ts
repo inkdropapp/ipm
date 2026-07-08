@@ -29,6 +29,9 @@ export type PackageInfo = {
   readme: string
   metadata: PackageMetadata
   versions?: Record<string, PackageVersionInfo>
+  palette?: {
+    url: string
+  }
 }
 
 export type PackageMetadata = {
@@ -44,7 +47,7 @@ export type PackageMetadata = {
   }
   dependencies?: Record<string, string>
   devDependencies?: Record<string, string>
-  theme?: 'syntax' | 'ui' | 'preview'
+  theme?: boolean
 }
 
 export type PackageVersionInfo = PackageMetadata & {
