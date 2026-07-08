@@ -245,17 +245,17 @@ export class CommandPublish {
     repositoryId: string,
     dryrun: boolean = false
   ) {
-    // Check if the package already exists
-    let isNewPackage = true
+    // Check if the package already exists. Only a 404 means "not published yet" —
+    // treating any other failure as a new package sends an update to the create
+    // endpoint, which rejects it and would otherwise reset the package document.
+    let isNewPackage = false
     try {
-      const checkResponse = await this.registry.getPackageInfo(pkg.name)
-      isNewPackage = !checkResponse
+      await this.registry.getPackageInfo(pkg.name, { ignoreCompatibility: true })
     } catch (error: any) {
-      if (error.response?.status !== 404) {
-        // If it's not a 404, something else went wrong
-        logger.warn('Could not check if package exists:', error.message)
+      if (!isAxiosError(error) || error.response?.status !== 404) {
+        throw new Error(`Could not check whether the package ${pkg.name} exists`, { cause: error })
       }
-      // 404 means package doesn't exist, so it's a new package
+      isNewPackage = true
     }
 
     // Prepare form data

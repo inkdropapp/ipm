@@ -26,9 +26,19 @@ export class IPMRegistry {
    * Returns 404 when no version is compatible with the client's Inkdrop major.
    * Versions are returned as-is; the caller resolves the installable version
    * from each version's `engines`.
+   *
+   * @param opts.ignoreCompatibility - Return the package regardless of whether
+   *   any version supports the installed Inkdrop major. Required when asking
+   *   "does this package exist?" (publish, unpublish) rather than "can I install
+   *   it?" — otherwise a package whose versions predate the installed major is
+   *   indistinguishable from one that was never published.
    */
-  async getPackageInfo(name: string): Promise<PackageInfo> {
-    return this.apiClient.get(name).then((res) => res.data)
+  async getPackageInfo(
+    name: string,
+    opts: { ignoreCompatibility?: boolean } = {}
+  ): Promise<PackageInfo> {
+    const config = opts.ignoreCompatibility ? { params: { compat: 'any' } } : {}
+    return this.apiClient.get(name, config).then((res) => res.data)
   }
 
   /**

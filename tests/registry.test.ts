@@ -61,8 +61,18 @@ describe('IPMRegistry', () => {
 
       const result = await registry.getPackageInfo('test-package')
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith('test-package')
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith('test-package', {})
       expect(result).toEqual(mockPackageInfo)
+    })
+
+    it('should not filter by compatibility when ignoreCompatibility is set', async () => {
+      mockAxiosInstance.get.mockResolvedValue({ data: { name: 'test-package' } })
+
+      await registry.getPackageInfo('test-package', { ignoreCompatibility: true })
+
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith('test-package', {
+        params: { compat: 'any' }
+      })
     })
 
     it('should handle API errors', async () => {

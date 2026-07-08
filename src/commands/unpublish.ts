@@ -66,7 +66,7 @@ export class CommandUnpublish {
 
   private async validatePackageExists(name: string, version?: string): Promise<void> {
     try {
-      const packageInfo = await this.registry.getPackageInfo(name)
+      const packageInfo = await this.registry.getPackageInfo(name, { ignoreCompatibility: true })
 
       if (version) {
         // Check if the specific version exists
