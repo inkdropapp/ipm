@@ -1,6 +1,6 @@
 {
   "name": "@inkdropapp/ipm",
-  "version": "1.0.7",
+  "version": "1.1.0",
   "type": "module",
   "description": "Inkdrop Package Manager",
   "main": "lib/index.js",
