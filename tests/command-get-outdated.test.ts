@@ -316,6 +316,59 @@ describe('CommandGetOutdated', () => {
       })
     })
 
+    describe('with obsolete theme packages', () => {
+      const mockObsoleteUiTheme: PackageMetadata = {
+        ...mockInstalledPackage1,
+        name: 'obsolete-ui-theme',
+        theme: 'ui'
+      }
+      const mockObsoleteSyntaxTheme: PackageMetadata = {
+        ...mockInstalledPackage1,
+        name: 'obsolete-syntax-theme',
+        theme: 'syntax'
+      }
+      const mockObsoletePreviewTheme: PackageMetadata = {
+        ...mockInstalledPackage1,
+        name: 'obsolete-preview-theme',
+        theme: 'preview'
+      }
+      const mockUnifiedTheme: PackageMetadata = {
+        ...mockInstalledPackage2,
+        name: 'unified-theme',
+        theme: true
+      }
+
+      beforeEach(() => {
+        mockedReaddir.mockResolvedValue([
+          'obsolete-ui-theme',
+          'obsolete-syntax-theme',
+          'obsolete-preview-theme',
+          'unified-theme'
+        ] as any)
+
+        mockedReadFile
+          .mockResolvedValueOnce(JSON.stringify(mockObsoleteUiTheme))
+          .mockResolvedValueOnce(JSON.stringify(mockObsoleteSyntaxTheme))
+          .mockResolvedValueOnce(JSON.stringify(mockObsoletePreviewTheme))
+          .mockResolvedValueOnce(JSON.stringify(mockUnifiedTheme))
+
+        mockRegistry.getPackageInfo.mockResolvedValueOnce({
+          ...mockRegistryPackage2,
+          name: 'unified-theme'
+        })
+      })
+
+      it('should skip the outdated check for obsolete ui/syntax/preview theme types', async () => {
+        await command.run()
+
+        expect(mockRegistry.getPackageInfo).not.toHaveBeenCalledWith('obsolete-ui-theme')
+        expect(mockRegistry.getPackageInfo).not.toHaveBeenCalledWith('obsolete-syntax-theme')
+        expect(mockRegistry.getPackageInfo).not.toHaveBeenCalledWith('obsolete-preview-theme')
+        expect(mockRegistry.getPackageInfo).toHaveBeenCalledWith('unified-theme')
+        expect(mockRegistry.getPackageInfo).toHaveBeenCalledTimes(1)
+      })
+    })
+
     describe('with incompatible packages', () => {
       const mockIncompatiblePackage: PackageInfo = {
         ...mockRegistryPackage1,

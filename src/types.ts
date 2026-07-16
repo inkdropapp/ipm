@@ -47,7 +47,10 @@ export type PackageMetadata = {
   }
   dependencies?: Record<string, string>
   devDependencies?: Record<string, string>
-  theme?: boolean
+  // v6 themes declare `theme: true`. The `'ui' | 'syntax' | 'preview'` values are
+  // the pre-v6 separate theme types, obsolete now that themes are unified, but still
+  // found in installed packages' package.json on disk.
+  theme?: boolean | 'ui' | 'syntax' | 'preview'
 }
 
 export type PackageVersionInfo = PackageMetadata & {

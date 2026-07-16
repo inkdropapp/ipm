@@ -9,6 +9,14 @@ import { IPMRegistry } from '../registry'
 import { OutdatedPackageInfo, PackageMetadata } from '../types'
 import { getLatestCompatibleVersion } from '../utils'
 
+const OBSOLETE_THEME_TYPES = ['ui', 'syntax', 'preview'] as const
+
+function isObsoleteThemeType(
+  theme: PackageMetadata['theme']
+): theme is (typeof OBSOLETE_THEME_TYPES)[number] {
+  return typeof theme === 'string' && (OBSOLETE_THEME_TYPES as readonly string[]).includes(theme)
+}
+
 export class CommandGetOutdated {
   constructor(
     public installedInkdropVersion: string,
@@ -24,6 +32,13 @@ export class CommandGetOutdated {
       const installedPkgs = await this.getInstalledPackages(packagesDir)
 
       for (const pkg of installedPkgs) {
+        if (isObsoleteThemeType(pkg.theme)) {
+          logger.debug(
+            `Skipping outdated check for ${pkg.name}: obsolete "${pkg.theme}" theme type no longer receives releases`
+          )
+          continue
+        }
+
         try {
           const packageInfo = await this.registry.getPackageInfo(pkg.name)
           const latestVersion = getLatestCompatibleVersion(
