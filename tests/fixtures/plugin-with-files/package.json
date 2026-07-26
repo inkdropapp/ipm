@@ -1,0 +1,10 @@
+{
+  "name": "plugin-with-files",
+  "main": "./lib/index",
+  "version": "1.0.0",
+  "description": "A fixture plugin that declares a files allowlist",
+  "repository": "https://github.com/inkdropapp/plugin-with-files",
+  "license": "MIT",
+  "engines": { "inkdrop": "^6.0.0" },
+  "files": ["lib", "styles"]
+}

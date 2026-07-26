@@ -1,3 +1,7 @@
 tmp
 dist
 lib
+coverage
+
+# Plugin fixtures mirror a real plugin layout, so their `lib` is source, not build output
+!tests/fixtures/**/lib

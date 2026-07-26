@@ -103,6 +103,33 @@ Publish a package to the registry. It will use `cwd` to locate the package to pu
 await ipm.publish({ dryrun: true, path: './my-package' })
 ```
 
+#### Choosing which files get published
+
+By default every file in the package directory is published, apart from a built-in
+denylist (`node_modules`, `.git`, `.env`, `coverage`, `*.log`, …).
+
+To publish only a subset, declare a `files` allowlist in `package.json`, the same
+way you would for npm:
+
+```json
+{
+  "files": ["lib", "styles"]
+}
+```
+
+- Listed directories are packed recursively.
+- Glob patterns (`dist/**`, `*.css`) and `!` negations are supported, and the last
+  matching pattern wins.
+- Globs follow standard shell/`.gitignore` semantics, so a leading `*` does not match
+  dotfiles. Dotfiles are packed when named explicitly (`.babelrc`) or when they sit
+  inside an allowlisted directory.
+- `package.json`, `README*`, `LICENSE*`/`LICENCE*` and the `main` entry point are
+  always packed, even if the allowlist omits them.
+- The built-in denylist still applies, so an allowlisted directory cannot leak a
+  nested `.env` or `*.log`.
+- An empty or malformed `files` value is ignored and everything is packed, since
+  publishing an empty plugin would break every user who installs it.
+
 ### `unpublish(name: string, opts?: { version?: string })`
 
 Unpublish a package or specific version from the registry.

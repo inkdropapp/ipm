@@ -1,10 +1,26 @@
 import './env'
-import { rm } from 'fs/promises'
+import { readFile, rm, writeFile } from 'fs/promises'
 import path from 'path'
+
+import * as tar from 'tar'
 
 import { CommandPublish } from '../src/commands/publish'
 import { Environment } from '../src/environment'
 import { IPMRegistry } from '../src/registry'
+
+/** Collect the file paths inside a tarball, normalized to package-relative form. */
+async function listTarballEntries(tarballPath: string): Promise<string[]> {
+  const entries: string[] = []
+  await tar.list({
+    file: tarballPath,
+    onReadEntry: (entry) => {
+      if (entry.type === 'File') {
+        entries.push(entry.path.replace(/^\.\//, ''))
+      }
+    }
+  })
+  return entries
+}
 
 describe('CommandPublish', () => {
   let command: CommandPublish
@@ -152,6 +168,39 @@ describe('CommandPublish', () => {
       expect(result.filePath).toContain('plugin-valid-1.0.0.tar.gz')
 
       await rm(result.filePath)
+    })
+
+    it('should pack only the entries allowed by the "files" field', async () => {
+      const filesFixtureDir = path.join(__dirname, 'fixtures', 'plugin-with-files')
+      const pkg = JSON.parse(await readFile(path.join(filesFixtureDir, 'package.json'), 'utf-8'))
+
+      // Written at runtime rather than committed: a developer's global gitignore
+      // very likely drops `*.log`, which would make the denylist assertion vacuous.
+      const denylistedPath = path.join(filesFixtureDir, 'lib', 'debug.log')
+      await writeFile(denylistedPath, 'debug output')
+
+      try {
+        const result = await command.createTarball(pkg, filesFixtureDir)
+        const packed = await listTarballEntries(result.filePath)
+
+        expect(packed).toEqual(
+          expect.arrayContaining([
+            'lib/index.js',
+            'lib/nested/deep.js',
+            'styles/ui.css',
+            'package.json',
+            'README.md',
+            'LICENSE'
+          ])
+        )
+        expect(packed).not.toContain('src/index.ts')
+        expect(packed).not.toContain('tsconfig.json')
+        expect(packed).not.toContain('lib/debug.log')
+
+        await rm(result.filePath)
+      } finally {
+        await rm(denylistedPath, { force: true })
+      }
     })
   })
 

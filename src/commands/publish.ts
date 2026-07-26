@@ -11,6 +11,7 @@ import * as tar from 'tar'
 import { PACKAGE_MAX_SIZE } from '../consts'
 import { Environment } from '../environment'
 import { logger } from '../logger'
+import { createPackFilter } from '../pack-filter'
 import { IPMRegistry } from '../registry'
 
 /**
@@ -170,54 +171,22 @@ export class CommandPublish {
 
     const tarballPath = path.join(tempDir, `${pkg.name}-${pkg.version}.tar.gz`)
 
-    // Files to exclude from the tarball
-    const excludePatterns = [
-      'node_modules',
-      '.git',
-      '.github',
-      '.vscode',
-      '.DS_Store',
-      '*.log',
-      '.npm',
-      '.eslint*',
-      '.env',
-      '.env.local',
-      '.env.*.local',
-      'coverage',
-      '.nyc_output',
-      'tmp',
-      'temp',
-      '*.tgz',
-      '*.tar.gz'
-    ]
+    if (Array.isArray(pkg.files) && pkg.files.length > 0) {
+      logger.info(`Packing files matching "files": ${pkg.files.join(', ')}`)
+    }
+
+    const shouldPack = createPackFilter(pkg)
 
     await tar.create(
       {
         gzip: true,
         file: tarballPath,
         cwd: repoDir,
-        filter: (path) => {
-          const normalizedPath = path.replace(/\\/g, '/')
-
-          for (const pattern of excludePatterns) {
-            if (pattern.includes('*')) {
-              const regex = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$')
-              if (regex.test(normalizedPath)) {
-                return false
-              }
-            } else {
-              if (
-                normalizedPath === pattern ||
-                normalizedPath === `./${pattern}` ||
-                normalizedPath.startsWith(`${pattern}/`) ||
-                normalizedPath.startsWith(`./${pattern}/`)
-              ) {
-                return false
-              }
-            }
-          }
-          return true
-        }
+        filter: (entryPath, entry) =>
+          shouldPack(
+            entryPath,
+            'isDirectory' in entry ? entry.isDirectory() : entry.type === 'Directory'
+          )
       },
       ['.']
     )
